@@ -1,0 +1,102 @@
+export type UserRole = 'admin' | 'manager' | 'team_lead' | 'member'
+export type UserStatus = 'active' | 'inactive'
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  role: UserRole
+  designation: string
+  avatar?: string
+  teamId?: string
+  departmentId?: string
+  status: UserStatus
+}
+
+export interface Department {
+  id: string
+  name: string
+  slug: string
+}
+
+export interface Team {
+  id: string
+  departmentId: string
+  name: string
+  leadId?: string
+}
+
+export type ProjectStatus =
+  | 'planning'
+  | 'in_progress'
+  | 'continue_development'
+  | 'on_hold'
+  | 'completed'
+  | 'cancelled'
+export type Priority = 'low' | 'medium' | 'high' | 'urgent'
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
+
+export interface Project {
+  id: string
+  projectName: string
+  ownerId: string
+  teamId: string
+  category: 'tech' | 'marketing' | 'business'
+  status: ProjectStatus
+  priority: Priority
+  currentProgress: number
+  targetProgress: number
+  riskLevel: RiskLevel
+  dueDate: string
+  description: string
+}
+
+export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'completed'
+export type TaskType = 'feature' | 'bug' | 'chore' | 'research' | 'meeting'
+
+export interface Task {
+  id: string
+  projectId: string
+  assignedTo: string
+  createdBy: string
+  title: string
+  description: string
+  taskType: TaskType
+  status: TaskStatus
+  priority: Priority
+  progress: number
+  dependencyTaskId?: string
+  blocker?: string
+  expectedOutput?: string
+  startDate: string
+  dueDate: string
+}
+
+export interface ProjectUpdate {
+  id: string
+  projectId: string
+  updatedBy: string
+  updateDate: string
+  previousProgress: number
+  currentProgress: number
+  weeklyMovement: number
+  status: ProjectStatus
+  todayUpdate: string
+  blockers?: string
+  nextAction?: string
+  timelineNote?: string
+  remarks?: string
+}
+
+export interface ApiResponse<T> {
+  data: T
+  message?: string
+  success: boolean
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  total: number
+  page: number
+  pageSize: number
+}
