@@ -3,6 +3,7 @@ export interface WeeklyProductivityPoint {
   tech: number
   marketing: number
   business: number
+  [key: string]: string | number
 }
 
 export const weeklyProductivity: WeeklyProductivityPoint[] = [
@@ -32,6 +33,7 @@ export interface TeamPerformancePoint {
   team: string
   delivered: number
   planned: number
+  [key: string]: string | number
 }
 
 export const teamPerformance: TeamPerformancePoint[] = [
@@ -46,6 +48,7 @@ export interface TaskTrendPoint {
   week: string
   completed: number
   created: number
+  [key: string]: string | number
 }
 
 export const taskTrends: TaskTrendPoint[] = [
@@ -61,6 +64,7 @@ export interface RiskDistribution {
   level: string
   count: number
   color: string
+  [key: string]: string | number
 }
 
 export const riskDistribution: RiskDistribution[] = [

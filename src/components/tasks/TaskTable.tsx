@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { MoreHorizontal, Pencil, ExternalLink, Trash2 } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Card } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { toast } from "sonner";
+import { MoreHorizontal, Pencil, ExternalLink, Trash2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { StatusBadge } from '@/components/common/StatusBadge'
-import { PriorityBadge } from '@/components/common/PriorityBadge'
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { userById } from '@/mocks/users'
-import { projectById } from '@/mocks/projects'
-import { fmtDate, daysUntil } from '@/lib/date'
-import { getInitials, cn } from '@/lib/utils'
-import type { Task } from '@/types'
+} from "@/components/ui/dropdown-menu";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { PriorityBadge } from "@/components/common/PriorityBadge";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { userById } from "@/mocks/users";
+import { projectById } from "@/mocks/projects";
+import { fmtDate, daysUntil } from "@/lib/date";
+import { getInitials, cn } from "@/lib/utils";
+import type { Task } from "@/types";
 
 interface TaskTableProps {
-  tasks: Task[]
-  onRowClick?: (task: Task) => void
-  onEdit?: (task: Task) => void
-  onRemove?: (task: Task) => void
+  tasks: Task[];
+  onRowClick?: (task: Task) => void;
+  onEdit?: (task: Task) => void;
+  onRemove?: (task: Task) => void;
 }
 
-export function TaskTable({ tasks, onRowClick, onEdit, onRemove }: TaskTableProps) {
-  const [removing, setRemoving] = useState<Task | null>(null)
+export function TaskTable({
+  tasks,
+  onRowClick,
+  onEdit,
+  onRemove,
+}: TaskTableProps) {
+  const [removing, setRemoving] = useState<Task | null>(null);
 
   return (
     <>
@@ -50,10 +55,10 @@ export function TaskTable({ tasks, onRowClick, onEdit, onRemove }: TaskTableProp
             </thead>
             <tbody>
               {tasks.map((t) => {
-                const u = userById(t.assignedTo)
-                const p = projectById(t.projectId)
-                const days = daysUntil(t.dueDate)
-                const overdue = days < 0 && t.status !== 'completed'
+                const u = userById(t.assignedTo);
+                const p = projectById(t.projectId);
+                const days = daysUntil(t.dueDate);
+                const overdue = days < 0 && t.status !== "completed";
                 return (
                   <tr
                     key={t.id}
@@ -62,32 +67,53 @@ export function TaskTable({ tasks, onRowClick, onEdit, onRemove }: TaskTableProp
                   >
                     <td className="px-5 py-3">
                       <p className="font-medium">{t.title}</p>
-                      <p className="line-clamp-1 text-xs text-muted-foreground">{t.description}</p>
                     </td>
-                    <td className="px-5 py-3 text-xs text-muted-foreground">{p?.projectName}</td>
+                    <td className="px-5 py-3 text-xs text-muted-foreground">
+                      {p?.projectName}
+                    </td>
                     <td className="px-5 py-3">
                       {u && (
                         <div className="flex items-center gap-2">
                           <Avatar className="size-7">
-                            {u.avatar && <AvatarImage src={u.avatar} alt={u.name} />}
-                            <AvatarFallback>{getInitials(u.name)}</AvatarFallback>
+                            {u.avatar && (
+                              <AvatarImage src={u.avatar} alt={u.name} />
+                            )}
+                            <AvatarFallback>
+                              {getInitials(u.name)}
+                            </AvatarFallback>
                           </Avatar>
                           <span className="text-xs">{u.name}</span>
                         </div>
                       )}
                     </td>
-                    <td className="px-5 py-3"><StatusBadge status={t.status} /></td>
-                    <td className="px-5 py-3"><PriorityBadge priority={t.priority} /></td>
+                    <td className="px-5 py-3">
+                      <StatusBadge status={t.status} />
+                    </td>
+                    <td className="px-5 py-3">
+                      <PriorityBadge priority={t.priority} />
+                    </td>
                     <td className="px-5 py-3 min-w-[140px]">
                       <div className="flex items-center gap-2">
                         <Progress value={t.progress} className="h-1.5 w-20" />
-                        <span className="text-xs tabular-nums text-muted-foreground">{t.progress}%</span>
+                        <span className="text-xs tabular-nums text-muted-foreground">
+                          {t.progress}%
+                        </span>
                       </div>
                     </td>
-                    <td className={cn('px-5 py-3 text-xs whitespace-nowrap', overdue ? 'text-destructive font-medium' : 'text-muted-foreground')}>
-                      {fmtDate(t.dueDate, 'MMM d, yyyy')}
+                    <td
+                      className={cn(
+                        "px-5 py-3 text-xs whitespace-nowrap",
+                        overdue
+                          ? "text-destructive font-medium"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {fmtDate(t.dueDate, "MMM d, yyyy")}
                     </td>
-                    <td className="px-3 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                    <td
+                      className="px-3 py-3 text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -117,7 +143,7 @@ export function TaskTable({ tasks, onRowClick, onEdit, onRemove }: TaskTableProp
                       </DropdownMenu>
                     </td>
                   </tr>
-                )
+                );
               })}
             </tbody>
           </table>
@@ -127,18 +153,18 @@ export function TaskTable({ tasks, onRowClick, onEdit, onRemove }: TaskTableProp
       <ConfirmDialog
         open={Boolean(removing)}
         onOpenChange={(o) => !o && setRemoving(null)}
-        title={removing ? `Remove "${removing.title}"?` : 'Remove task?'}
+        title={removing ? `Remove "${removing.title}"?` : "Remove task?"}
         description="This action cannot be undone."
         confirmText="Remove"
         destructive
         onConfirm={() => {
           if (removing) {
-            if (onRemove) onRemove(removing)
-            else toast.success(`Task "${removing.title}" removed`)
+            if (onRemove) onRemove(removing);
+            else toast.success(`Task "${removing.title}" removed`);
           }
-          setRemoving(null)
+          setRemoving(null);
         }}
       />
     </>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import {
   CalendarDays,
   ExternalLink,
@@ -8,86 +8,64 @@ import {
   Pencil,
   Target,
   Trash2,
-} from 'lucide-react'
-import { Card } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { StatusBadge } from '@/components/common/StatusBadge'
-import { PriorityBadge } from '@/components/common/PriorityBadge'
-import { RiskBadge } from '@/components/common/RiskBadge'
-import { UserAvatarGroup } from '@/components/common/UserAvatarGroup'
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { PriorityBadge } from "@/components/common/PriorityBadge";
+import { RiskBadge } from "@/components/common/RiskBadge";
+import { UserAvatarGroup } from "@/components/common/UserAvatarGroup";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { mockUsers, userById } from '@/mocks/users'
-import { tasksByProject } from '@/mocks/tasks'
-import { fmtDate, daysUntil } from '@/lib/date'
-import { cn, getInitials } from '@/lib/utils'
-import type { Project } from '@/types'
-
-const categoryGlow: Record<Project['category'], string> = {
-  tech: 'gradient-info',
-  marketing: 'gradient-warning',
-  business: 'gradient-success',
-}
+} from "@/components/ui/dropdown-menu";
+import { mockUsers, userById } from "@/mocks/users";
+import { tasksByProject } from "@/mocks/tasks";
+import { fmtDate, daysUntil } from "@/lib/date";
+import { cn } from "@/lib/utils";
+import type { Project } from "@/types";
 
 interface ProjectCardProps {
-  project: Project
-  onEdit?: (project: Project) => void
-  onRemove?: (project: Project) => void
+  project: Project;
+  onEdit?: (project: Project) => void;
+  onRemove?: (project: Project) => void;
 }
 
 export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const owner = userById(project.ownerId)
-  const tasks = tasksByProject(project.id)
-  const teammates = mockUsers.filter((u) => u.teamId === project.teamId)
-  const days = daysUntil(project.dueDate)
-  const overdue = days < 0 && project.status !== 'completed'
-  const completedTasks = tasks.filter((t) => t.status === 'completed').length
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const owner = userById(project.ownerId);
+  const tasks = tasksByProject(project.id);
+  const teammates = mockUsers.filter((u) => u.teamId === project.teamId);
+  const days = daysUntil(project.dueDate);
+  const overdue = days < 0 && project.status !== "completed";
+  const completedTasks = tasks.filter((t) => t.status === "completed").length;
 
-  const gap = project.targetProgress - project.currentProgress
-  const onTarget = project.currentProgress >= project.targetProgress
+  const gap = project.targetProgress - project.currentProgress;
+  const onTarget = project.currentProgress >= project.targetProgress;
   const progressTone = onTarget
-    ? 'bg-success'
+    ? "bg-success"
     : gap > 15
-      ? 'bg-destructive'
-      : 'bg-primary'
+      ? "bg-destructive"
+      : "bg-primary";
 
   return (
     <Card className="group relative overflow-hidden p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-      <div
-        aria-hidden
-        className={cn(
-          'pointer-events-none absolute -right-16 -top-16 size-40 rounded-full opacity-15 blur-3xl transition-opacity duration-300 group-hover:opacity-30',
-          categoryGlow[project.category],
-        )}
-      />
+      
 
       <div className="relative">
         {/* Header — owner + actions */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2.5">
-            {owner && (
-              <Avatar className="size-9 ring-2 ring-background">
-                {owner.avatar && <AvatarImage src={owner.avatar} alt={owner.name} />}
-                <AvatarFallback>{getInitials(owner.name)}</AvatarFallback>
-              </Avatar>
-            )}
-            <div className="min-w-0 leading-tight">
-              <p className="truncate text-sm font-medium">{owner?.name ?? 'Unassigned'}</p>
-              <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {project.category}
-              </p>
-            </div>
-          </div>
-
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <Link
+            to={`/projects/${project.id}`}
+            className="line-clamp-2 text-lg font-semibold leading-snug tracking-tight transition-colors hover:text-primary"
+          >
+            {project.projectName}
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -119,21 +97,8 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
           </DropdownMenu>
         </div>
 
-        {/* Title + description */}
-        <div className="mt-4">
-          <Link
-            to={`/projects/${project.id}`}
-            className="line-clamp-2 text-base font-semibold leading-snug tracking-tight transition-colors hover:text-primary"
-          >
-            {project.projectName}
-          </Link>
-          <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
-            {project.description}
-          </p>
-        </div>
-
         {/* Badges */}
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1.5 mb-8">
           <StatusBadge status={project.status} kind="project" />
           <PriorityBadge priority={project.priority} />
           <RiskBadge level={project.riskLevel} />
@@ -154,7 +119,11 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
         {/* Footer */}
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/50 pt-3">
           <UserAvatarGroup
-            users={owner ? [owner, ...teammates.filter((u) => u.id !== owner.id)] : teammates}
+            users={
+              owner
+                ? [owner, ...teammates.filter((u) => u.id !== owner.id)]
+                : teammates
+            }
             max={4}
           />
           <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
@@ -164,13 +133,15 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
             </span>
             <span
               className={cn(
-                'inline-flex items-center gap-1',
-                overdue && 'font-medium text-destructive',
+                "inline-flex items-center gap-1",
+                overdue && "font-medium text-destructive",
               )}
               title="Due date"
             >
               <CalendarDays className="size-3" />
-              {overdue ? `${Math.abs(days)}d overdue` : fmtDate(project.dueDate, 'MMM d')}
+              {overdue
+                ? `${Math.abs(days)}d overdue`
+                : fmtDate(project.dueDate, "MMM d")}
             </span>
           </div>
         </div>
@@ -184,10 +155,10 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
         confirmText="Remove"
         destructive
         onConfirm={() => {
-          if (onRemove) onRemove(project)
-          else toast.success(`Project "${project.projectName}" removed`)
+          if (onRemove) onRemove(project);
+          else toast.success(`Project "${project.projectName}" removed`);
         }}
       />
     </Card>
-  )
+  );
 }
