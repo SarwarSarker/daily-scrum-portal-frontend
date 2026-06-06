@@ -10,7 +10,7 @@ import { mockUsers } from '@/mocks/users'
 import { mockProjects } from '@/mocks/projects'
 import type { Team } from '@/types'
 import { StatCard } from '@/components/cards/StatCard'
-import { Users, Briefcase, Building2, Crown } from 'lucide-react'
+import { Users, Briefcase, Building2, UsersRound } from 'lucide-react'
 
 function teamToDefaults(t: Team): Partial<TeamFormValues> {
   const dept = departmentById(t.departmentId)
@@ -41,7 +41,7 @@ export function TeamsPage() {
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Departments" value={`${mockDepartments.length}`} icon={Building2} variant="primary" />
         <StatCard label="Teams" value={`${mockTeams.length}`} icon={Users} variant="info" />
-        <StatCard label="People" value={`${mockUsers.length}`} icon={Crown} variant="success" />
+        <StatCard label="People" value={`${mockUsers.length}`} icon={UsersRound} variant="success" />
         <StatCard label="Active projects" value={`${mockProjects.filter((p) => p.status !== 'completed' && p.status !== 'cancelled').length}`} icon={Briefcase} variant="warning" />
       </div>
 

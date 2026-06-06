@@ -27,13 +27,6 @@ export function StatCard({ label, value, delta, helper, icon: Icon, variant = 'p
 
   return (
     <Card className={cn('group relative overflow-hidden p-5 transition-shadow hover:shadow-md', className)}>
-      <div
-        aria-hidden
-        className={cn(
-          'pointer-events-none absolute -right-10 -top-10 size-32 rounded-full opacity-15 blur-2xl transition-opacity group-hover:opacity-25',
-          accentMap[variant],
-        )}
-      />
       <div className="relative flex items-start justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
