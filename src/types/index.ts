@@ -76,14 +76,12 @@ export interface ProjectUpdate {
   id: string
   projectId: string
   updatedBy: string
-  updateDate: string
   previousProgress: number
   currentProgress: number
   weeklyMovement: number
   status: ProjectStatus
   todayUpdate: string
   blockers?: string
-  nextAction?: string
   timelineNote?: string
   remarks?: string
 }

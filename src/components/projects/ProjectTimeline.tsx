@@ -5,13 +5,10 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { scrumReportsByProject } from '@/mocks/scrumReports'
 import { userById } from '@/mocks/users'
-import { fmtDate } from '@/lib/date'
 import { getInitials, cn } from '@/lib/utils'
 
 export function ProjectTimeline({ projectId }: { projectId: string }) {
-  const reports = scrumReportsByProject(projectId).sort((a, b) =>
-    b.updateDate.localeCompare(a.updateDate),
-  )
+  const reports = scrumReportsByProject(projectId)
 
   if (reports.length === 0) {
     return <p className="text-sm text-muted-foreground">No scrum updates yet.</p>
@@ -42,7 +39,6 @@ export function ProjectTimeline({ projectId }: { projectId: string }) {
                   )}
                   <div className="leading-tight">
                     <p className="text-sm font-medium">{u?.name ?? 'Someone'}</p>
-                    <p className="text-xs text-muted-foreground">{fmtDate(r.updateDate, 'MMM d, yyyy')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -57,20 +53,12 @@ export function ProjectTimeline({ projectId }: { projectId: string }) {
 
               <p className="mt-3 text-sm">{r.todayUpdate}</p>
 
-              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {r.blockers && (
-                  <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-destructive">Blocker</p>
-                    <p>{r.blockers}</p>
-                  </div>
-                )}
-                {r.nextAction && (
-                  <div className="rounded-md border border-info/30 bg-info/5 p-3 text-sm">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-info">Next action</p>
-                    <p>{r.nextAction}</p>
-                  </div>
-                )}
-              </div>
+              {r.blockers && (
+                <div className="mt-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-destructive">Blocker</p>
+                  <p>{r.blockers}</p>
+                </div>
+              )}
 
               {r.remarks && (
                 <p className="mt-3 border-l-2 border-border pl-3 text-xs text-muted-foreground">

@@ -8,10 +8,7 @@ export function projectToDefaults(p: Project): Partial<ProjectFormValues> {
     projectName: p.projectName,
     description: p.description,
     owner: owner?.name ?? '',
-    category: p.category,
-    currentProgress: p.currentProgress,
-    previousProgress: Math.max(0, p.currentProgress - 8),
-    endDate: p.dueDate,
+    teamId: p.teamId,
     status:
       p.status === 'cancelled' || p.status === 'completed'
         ? 'completed'

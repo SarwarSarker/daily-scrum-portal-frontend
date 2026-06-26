@@ -23,16 +23,14 @@ function taskToDefaults(t: Task): Partial<TaskFormValues> {
   const owner = userById(t.assignedTo)
   return {
     projectId: t.projectId,
-    taskOwner: owner?.name ?? '',
+    assignedTo: owner?.name ?? '',
     title: t.title,
     description: t.description,
-    taskType: t.taskType,
     priority: t.priority,
     status: t.status,
     progress: t.progress,
     startDate: t.startDate,
     endDate: t.dueDate,
-    dependency: t.dependencyTaskId ?? '',
     expectedOutput: t.expectedOutput ?? '',
     blocker: t.blocker ?? '',
   }
