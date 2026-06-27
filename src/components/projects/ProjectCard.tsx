@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  CalendarDays,
   ExternalLink,
   MoreHorizontal,
   Pencil,
@@ -21,7 +20,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { fmtDate, daysUntil } from "@/lib/date";
 import { cn, getInitials } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -48,10 +46,6 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
   };
 
   const statusColor = getStatusColor(project.status);
-
-  // Handle optional fields with fallbacks
-  const days = project.dueDate ? daysUntil(project.dueDate) : null;
-  const overdue = days !== null && days < 0 && project.status !== "completed";
 
   const currentProgress = project.currentProgress ?? 0;
 
@@ -163,16 +157,6 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
               <Users className="size-4" />
               <span className="text-sm">{project.team?.name || `Team ${project.teamId}`}</span>
             </div>
-            {project.dueDate && (
-              <div className="flex items-center gap-1 text-gray-600">
-                <CalendarDays className="size-4" />
-                <span className="text-sm">
-                  {overdue
-                    ? `${Math.abs(days)}d overdue`
-                    : fmtDate(project.dueDate, "MMM d")}
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </div>

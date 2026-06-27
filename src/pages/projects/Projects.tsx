@@ -12,7 +12,7 @@ import { ProjectFormModal } from '@/components/projects/ProjectFormModal'
 import { projectToDefaults } from '@/components/projects/projectToDefaults'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useProjects } from '@/utils/apiHelper'
+import { useProjects, useUsers, useTeams } from '@/utils/apiHelper'
 import type { Project } from '@/types'
 
 export function ProjectsPage() {
@@ -26,8 +26,10 @@ export function ProjectsPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
 
-  // Fetch projects from API
+  // Fetch projects, users, and teams from API
   const { data: projects = [], isLoading, error } = useProjects()
+  const { data: users = [] } = useUsers()
+  const { data: teams = [] } = useTeams()
   console.log("🚀 ~ ProjectsPage ~ projects:", projects)
 
   const filtered = useMemo(() => {
@@ -147,7 +149,7 @@ export function ProjectsPage() {
           title="No projects yet"
           description="Get started by creating your first project."
         />
-        <ProjectFormModal open={createOpen} onOpenChange={setCreateOpen} />
+        <ProjectFormModal open={createOpen} onOpenChange={setCreateOpen} users={users} teams={teams} />
       </>
     )
   }
@@ -195,7 +197,7 @@ export function ProjectsPage() {
         </div>
       )}
 
-      <ProjectFormModal open={createOpen} onOpenChange={setCreateOpen} />
+      <ProjectFormModal open={createOpen} onOpenChange={setCreateOpen} users={users} teams={teams} />
 
       {editing && (
         <ProjectFormModal
@@ -203,6 +205,8 @@ export function ProjectsPage() {
           open={Boolean(editing)}
           onOpenChange={(o) => !o && setEditing(null)}
           defaultValues={projectToDefaults(editing)}
+          users={users}
+          teams={teams}
         />
       )}
     </>

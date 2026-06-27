@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Controller, useForm, useWatch, type Control } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -22,8 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useUsers, useTeams, useCreateProjectMutation, useUpdateProjectMutation } from '@/utils/apiHelper'
+import { useCreateProjectMutation, useUpdateProjectMutation } from '@/utils/apiHelper'
+import type { User, Team } from '@/types'
 
 const statusOptions = [
   { value: 'planning',             label: 'Planning'             },
@@ -54,16 +55,13 @@ interface ProjectFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultValues?: Partial<ProjectFormValues>
+  users: User[]
+  teams: Team[]
 }
 
-export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectFormModalProps) {
-  // Fetch real data from API
-  const { data: users = [], isLoading: usersLoading } = useUsers()
-  const { data: teams = [], isLoading: teamsLoading } = useTeams()
+export function ProjectFormModal({ open, onOpenChange, defaultValues, users, teams }: ProjectFormModalProps) {
   const createProjectMutation = useCreateProjectMutation()
   const updateProjectMutation = useUpdateProjectMutation()
-
-  const isLoading = usersLoading || teamsLoading
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -74,9 +72,15 @@ export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectF
       teamId: teams[0]?.id ?? '',
       status: 'in_progress',
       blocker: '',
-      ...defaultValues,
     },
   })
+
+  // Reset form when defaultValues change (for editing)
+  useEffect(() => {
+    if (defaultValues) {
+      form.reset(defaultValues)
+    }
+  }, [defaultValues, form])
 
   const onSubmit = async (data: ProjectFormValues) => {
     try {
@@ -124,25 +128,6 @@ export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectF
     }
   }
 
-  // Show loading state while fetching data
-  if (isLoading && !defaultValues) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-5xl">
-          <DialogHeader>
-            <DialogTitle>Create project</DialogTitle>
-            <DialogDescription>Loading data...</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
@@ -168,21 +153,22 @@ export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectF
                 </Field>
 
                 <Field label="Project Lead" error={form.formState.errors.owner?.message}>
-                  <Select
-                    value={form.watch('owner')}
-                    onValueChange={(v) => form.setValue('owner', v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select lead" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {users.map((u) => (
-                        <SelectItem key={u.id} value={u.name}>
-                          {u.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    control={form.control}
+                    name="owner"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {users.map((u) => (
+                            <SelectItem key={u.id} value={u.name}>
+                              {u.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </Field>
 
                 <Field
@@ -198,21 +184,22 @@ export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectF
                 </Field>
 
                 <Field label="Team" error={form.formState.errors.teamId?.message}>
-                  <Select
-                    value={form.watch('teamId')}
-                    onValueChange={(v) => form.setValue('teamId', v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select team" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teams.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    control={form.control}
+                    name="teamId"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {teams.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </Field>
 
                 <Field label="Status" className="">
