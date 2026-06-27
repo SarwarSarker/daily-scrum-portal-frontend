@@ -4,16 +4,11 @@ import { CheckSquare, FolderKanban, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { mockProjects } from '@/mocks/projects'
-import { mockTasks } from '@/mocks/tasks'
-import { mockUsers } from '@/mocks/users'
+import { useProjects } from '@/utils/apiHelper'
 import { getInitials } from '@/lib/utils'
-import type { Project, Task, User } from '@/types'
+import type { Project } from '@/types'
 
-type Result =
-  | { kind: 'project'; item: Project }
-  | { kind: 'task'; item: Task }
-  | { kind: 'user'; item: User }
+type Result = { kind: 'project'; item: Project }
 
 export function GlobalSearch() {
   const [query, setQuery] = useState('')
@@ -21,6 +16,9 @@ export function GlobalSearch() {
   const [activeIndex, setActiveIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
+
+  // Fetch real projects from API
+  const { data: projects = [] } = useProjects()
 
   // Cmd/Ctrl + K to focus
   useEffect(() => {
@@ -35,40 +33,27 @@ export function GlobalSearch() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const { projects, tasks, users, flat } = useMemo(() => {
+  const { flat } = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return { projects: [], tasks: [], users: [], flat: [] as Result[] }
-    const projects = mockProjects
+    if (!q) return { flat: [] as Result[] }
+
+    const filtered = projects
       .filter(
         (p) =>
           p.projectName.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q),
       )
-      .slice(0, 4)
-    const tasks = mockTasks
-      .filter(
-        (t) =>
-          t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q),
-      )
-      .slice(0, 4)
-    const users = mockUsers
-      .filter(
-        (u) =>
-          u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
-      )
-      .slice(0, 4)
-    const flat: Result[] = [
-      ...projects.map((item) => ({ kind: 'project' as const, item })),
-      ...tasks.map((item) => ({ kind: 'task' as const, item })),
-      ...users.map((item) => ({ kind: 'user' as const, item })),
-    ]
-    return { projects, tasks, users, flat }
-  }, [query])
+      .slice(0, 8) // Show up to 8 results
 
-  // Reset highlight when query changes
+    return {
+      flat: filtered.map((item) => ({ kind: 'project' as const, item }))
+    }
+  }, [projects, query])
+
+  // Reset active index when results change
   useEffect(() => {
     setActiveIndex(0)
-  }, [query])
+  }, [flat.length])
 
   const close = () => {
     setOpen(false)
@@ -78,8 +63,6 @@ export function GlobalSearch() {
 
   const go = (r: Result) => {
     if (r.kind === 'project') navigate(`/projects/${r.item.id}`)
-    else if (r.kind === 'task') navigate(`/tasks`)
-    else if (r.kind === 'user') navigate(`/users`)
     close()
   }
 
@@ -150,47 +133,6 @@ export function GlobalSearch() {
                       active={idx === activeIndex}
                       onMouseEnter={() => setActiveIndex(idx)}
                       onClick={() => go({ kind: 'project', item: p })}
-                    />
-                  )
-                })}
-              </Group>
-            )}
-            {tasks.length > 0 && (
-              <Group title="Tasks">
-                {tasks.map((t) => {
-                  const idx = flat.findIndex((r) => r.kind === 'task' && r.item.id === t.id)
-                  return (
-                    <ResultItem
-                      key={t.id}
-                      icon={<CheckSquare className="size-4 text-warning" />}
-                      title={t.title}
-                      subtitle={t.description}
-                      active={idx === activeIndex}
-                      onMouseEnter={() => setActiveIndex(idx)}
-                      onClick={() => go({ kind: 'task', item: t })}
-                    />
-                  )
-                })}
-              </Group>
-            )}
-            {users.length > 0 && (
-              <Group title="People">
-                {users.map((u) => {
-                  const idx = flat.findIndex((r) => r.kind === 'user' && r.item.id === u.id)
-                  return (
-                    <ResultItem
-                      key={u.id}
-                      icon={
-                        <Avatar className="size-5">
-                          {u.avatar && <AvatarImage src={u.avatar} alt={u.name} />}
-                          <AvatarFallback className="text-[9px]">{getInitials(u.name)}</AvatarFallback>
-                        </Avatar>
-                      }
-                      title={u.name}
-                      subtitle={u.email}
-                      active={idx === activeIndex}
-                      onMouseEnter={() => setActiveIndex(idx)}
-                      onClick={() => go({ kind: 'user', item: u })}
                     />
                   )
                 })}

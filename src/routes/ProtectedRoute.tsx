@@ -1,15 +1,14 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { useAppSelector } from '@/redux/hooks'
+import { authApi } from '@/utils/apiHelper'
 
 export function ProtectedRoute() {
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
   const location = useLocation()
 
-  // Phase 1: auth is stubbed. Until real login is wired, allow access in dev so
-  // designers can preview pages. Flip this guard on once login mutation lands.
-  const DEV_BYPASS = import.meta.env.DEV
+  // Check if user is authenticated by verifying token exists
+  const isAuthenticated = authApi.isAuthenticated()
 
-  if (!isAuthenticated && !DEV_BYPASS) {
+  if (!isAuthenticated) {
+    // Redirect to login page with return location
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 

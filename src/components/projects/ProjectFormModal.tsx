@@ -22,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { mockTeams, teamById } from '@/mocks/teams'
-import { mockUsers } from '@/mocks/users'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useUsers, useTeams, useCreateProjectMutation, useUpdateProjectMutation } from '@/utils/apiHelper'
 
 const statusOptions = [
   { value: 'planning',             label: 'Planning'             },
@@ -57,25 +57,90 @@ interface ProjectFormModalProps {
 }
 
 export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectFormModalProps) {
+  // Fetch real data from API
+  const { data: users = [], isLoading: usersLoading } = useUsers()
+  const { data: teams = [], isLoading: teamsLoading } = useTeams()
+  const createProjectMutation = useCreateProjectMutation()
+  const updateProjectMutation = useUpdateProjectMutation()
+
+  const isLoading = usersLoading || teamsLoading
+
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       projectName: '',
       description: '',
       owner: '',
-      teamId: mockTeams[0]?.id ?? '',
+      teamId: teams[0]?.id ?? '',
       status: 'in_progress',
       blocker: '',
       ...defaultValues,
     },
   })
 
-  const onSubmit = (data: ProjectFormValues) => {
-    toast.success(`Project "${data.projectName}" saved`, {
-      description: 'Wire this up to your backend in src/services/api.ts.',
-    })
-    form.reset()
-    onOpenChange(false)
+  const onSubmit = async (data: ProjectFormValues) => {
+    try {
+      if (defaultValues) {
+        // Update existing project
+        await updateProjectMutation.mutateAsync({
+          id: defaultValues.projectName || '', // You'll need to pass the project ID
+          project: {
+            id: defaultValues.projectName || '', // Include ID in the project object
+            projectName: data.projectName,
+            ownerId: data.owner,
+            teamId: data.teamId,
+            category: 'tech' as const, // Default or add to form
+            status: data.status as 'planning' | 'in_progress' | 'continue_development' | 'on_hold' | 'completed',
+            priority: 'medium' as const, // Default or add to form
+            currentProgress: 0,
+            targetProgress: 100,
+            riskLevel: 'low' as const,
+            dueDate: new Date().toISOString(),
+            description: data.description || '',
+          }
+        })
+        toast.success('Project updated successfully')
+      } else {
+        // Create new project
+        await createProjectMutation.mutateAsync({
+          projectName: data.projectName,
+          ownerId: data.owner,
+          teamId: data.teamId,
+          category: 'tech' as const, // Default or add to form
+          status: data.status as 'planning' | 'in_progress' | 'continue_development' | 'on_hold' | 'completed',
+          priority: 'medium' as const, // Default or add to form
+          currentProgress: 0,
+          targetProgress: 100,
+          riskLevel: 'low' as const,
+          dueDate: new Date().toISOString(),
+          description: data.description || '',
+        })
+        toast.success('Project created successfully')
+      }
+      form.reset()
+      onOpenChange(false)
+    } catch {
+      toast.error('Failed to save project. Please try again.')
+    }
+  }
+
+  // Show loading state while fetching data
+  if (isLoading && !defaultValues) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Create project</DialogTitle>
+            <DialogDescription>Loading data...</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
   return (
@@ -111,7 +176,7 @@ export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectF
                       <SelectValue placeholder="Select lead" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockUsers.map((u) => (
+                      {users.map((u) => (
                         <SelectItem key={u.id} value={u.name}>
                           {u.name}
                         </SelectItem>
@@ -141,7 +206,7 @@ export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectF
                       <SelectValue placeholder="Select team" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockTeams.map((t) => (
+                      {teams.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
                           {t.name}
                         </SelectItem>
@@ -169,7 +234,7 @@ export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectF
               </CardContent>
             </Card>
 
-            <LivePreview control={form.control} />
+            <LivePreview control={form.control} teams={teams} />
           </div>
 
           <div className="grid grid-cols-1 gap-5">
@@ -219,9 +284,15 @@ function Field({
   )
 }
 
-function LivePreview({ control }: { control: Control<ProjectFormValues> }) {
+interface LivePreviewProps {
+  control: Control<ProjectFormValues>
+  teams: Array<{ id: string; name: string }>
+}
+
+function LivePreview({ control, teams }: LivePreviewProps) {
   const values = useWatch({ control })
   const statusLabel = statusOptions.find((s) => s.value === values.status)?.label ?? '—'
+  const team = teams.find(t => t.id === values.teamId)
 
   return (
     <Card className="self-start">
@@ -231,7 +302,7 @@ function LivePreview({ control }: { control: Control<ProjectFormValues> }) {
       <CardContent className="space-y-3 text-sm">
         <Row label="Project" value={values.projectName || 'Untitled'} />
         <Row label="Project Lead" value={values.owner || 'Not assigned'} />
-        <Row label="Team" value={values.teamId ? teamById(values.teamId)?.name ?? '—' : '—'} />
+        <Row label="Team" value={team?.name ?? '—'} />
         <Row label="Status" value={statusLabel} />
       </CardContent>
     </Card>

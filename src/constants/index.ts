@@ -2,21 +2,24 @@ export const APP_NAME = 'Scrumly'
 export const APP_TAGLINE = 'Daily Scrum Dashboard'
 export const APP_VERSION = '1.0.0'
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api'
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL + "/api/"
+export const API_BASE_URL = BASE_URL
+
+export const REGISTER_USER = `v1/auth/register`;
+export const SIGNIN_USER = `v1/auth/login`;
+
+export const GET_USERS = `v1/users`;
+export const GET_PROFILE = `v1/users/profile`;
+
+export const GET_PROJECTS = `v1/projects`;
+export const GET_TASKS = `v1/tasks`;
+
+export const GET_TEAMS = `v1/teams`;
+export const GET_DEPARTMENTS = `v1/departments`;
 
 export const STORAGE_KEYS = {
   authToken: 'scrumly:auth-token',
   authUser: 'scrumly:auth-user',
   theme: 'scrumly:theme',
   sidebarCollapsed: 'scrumly:sidebar-collapsed',
-} as const
-
-export const QUERY_KEYS = {
-  projects: ['projects'] as const,
-  project: (id: string) => ['projects', id] as const,
-  tasks: ['tasks'] as const,
-  task: (id: string) => ['tasks', id] as const,
-  teams: ['teams'] as const,
-  users: ['users'] as const,
-  me: ['me'] as const,
 } as const

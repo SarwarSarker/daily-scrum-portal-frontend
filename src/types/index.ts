@@ -36,19 +36,37 @@ export type ProjectStatus =
 export type Priority = 'low' | 'medium' | 'high' | 'urgent'
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
 
+export interface ProjectOwner {
+  id: string
+  name: string
+  avatar?: string | null
+}
+
+export interface ProjectTeam {
+  id: string
+  name: string
+  leadId?: string
+}
+
 export interface Project {
   id: string
   projectName: string
   ownerId: string
   teamId: string
-  category: 'tech' | 'marketing' | 'business'
+  category?: 'tech' | 'marketing' | 'business'
   status: ProjectStatus
-  priority: Priority
-  currentProgress: number
-  targetProgress: number
-  riskLevel: RiskLevel
-  dueDate: string
+  priority?: Priority
+  currentProgress?: number
+  targetProgress?: number
+  riskLevel?: RiskLevel
+  dueDate?: string
   description: string
+  blocker?: string
+  createdAt?: string
+  updatedAt?: string
+  owner?: ProjectOwner
+  team?: ProjectTeam
+  createdBy?: ProjectOwner
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'completed'

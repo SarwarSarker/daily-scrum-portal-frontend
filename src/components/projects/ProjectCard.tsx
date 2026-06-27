@@ -6,15 +6,15 @@ import {
   ExternalLink,
   MoreHorizontal,
   Pencil,
-  Target,
   Trash2,
+  Users,
+  Clock,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PriorityBadge } from "@/components/common/PriorityBadge";
 import { RiskBadge } from "@/components/common/RiskBadge";
-import { UserAvatarGroup } from "@/components/common/UserAvatarGroup";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,10 +24,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { mockUsers, userById } from "@/mocks/users";
-import { tasksByProject } from "@/mocks/tasks";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { fmtDate, daysUntil } from "@/lib/date";
-import { cn } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 import type { Project } from "@/types";
 
 interface ProjectCardProps {
@@ -38,15 +38,15 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const owner = userById(project.ownerId);
-  const tasks = tasksByProject(project.id);
-  const teammates = mockUsers.filter((u) => u.teamId === project.teamId);
-  const days = daysUntil(project.dueDate);
-  const overdue = days < 0 && project.status !== "completed";
-  const completedTasks = tasks.filter((t) => t.status === "completed").length;
 
-  const gap = project.targetProgress - project.currentProgress;
-  const onTarget = project.currentProgress >= project.targetProgress;
+  // Handle optional fields with fallbacks
+  const days = project.dueDate ? daysUntil(project.dueDate) : null;
+  const overdue = days !== null && days < 0 && project.status !== "completed";
+
+  const currentProgress = project.currentProgress ?? 0;
+  const targetProgress = project.targetProgress ?? 100;
+  const gap = targetProgress - currentProgress;
+  const onTarget = currentProgress >= targetProgress;
   const progressTone = onTarget
     ? "bg-success"
     : gap > 15
@@ -55,10 +55,10 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
 
   return (
     <Card className="group relative overflow-hidden p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-      
+
 
       <div className="relative">
-        {/* Header — owner + actions */}
+        {/* Header — actions */}
         <div className="flex items-start justify-between gap-3 mb-1">
           <Link
             to={`/projects/${project.id}`}
@@ -98,51 +98,92 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
         </div>
 
         {/* Badges */}
-        <div className="mt-3 flex flex-wrap gap-1.5 mb-8">
+        <div className="mt-3 flex flex-wrap gap-1.5 mb-3">
           <StatusBadge status={project.status} kind="project" />
-          <PriorityBadge priority={project.priority} />
-          <RiskBadge level={project.riskLevel} />
+          {project.priority && <PriorityBadge priority={project.priority} />}
+          {project.riskLevel && <RiskBadge level={project.riskLevel} />}
         </div>
 
         {/* Progress block */}
-        <div className="mt-4 flex items-center gap-3">
-          <Progress
-            value={project.currentProgress}
-            indicatorClassName={progressTone}
-            className="h-1.5 flex-1"
-          />
-          <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-            {project.currentProgress}%
-          </span>
-        </div>
+        {project.currentProgress !== undefined && (
+          <div className="mt-4 flex items-center gap-3">
+            <Progress
+              value={currentProgress}
+              indicatorClassName={progressTone}
+              className="h-1.5 flex-1"
+            />
+            <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+              {currentProgress}%
+            </span>
+          </div>
+        )}
+
+        {/* Description */}
+        {project.description && (
+          <div className="mt-3 text-xs text-muted-foreground line-clamp-2">
+            {project.description}
+          </div>
+        )}
 
         {/* Footer */}
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/50 pt-3">
-          <UserAvatarGroup
-            users={
-              owner
-                ? [owner, ...teammates.filter((u) => u.id !== owner.id)]
-                : teammates
-            }
-            max={4}
-          />
-          <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1" title="Tasks">
-              <Target className="size-3" />
-              {completedTasks}/{tasks.length}
-            </span>
-            <span
-              className={cn(
-                "inline-flex items-center gap-1",
-                overdue && "font-medium text-destructive",
+        <div className="mt-4 space-y-3 border-t border-border/50 pt-3">
+          {/* Owner Info with Avatar */}
+          {project.owner && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2 cursor-pointer">
+                    <Avatar className="size-7 ring-1 ring-border/50">
+                      {project.owner.avatar ? (
+                        <AvatarImage src={project.owner.avatar} alt={project.owner.name} />
+                      ) : (
+                        <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
+                          {getInitials(project.owner.name)}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-muted-foreground">Owner</span>
+                      <span className="text-xs font-medium">{project.owner.name}</span>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="font-medium">{project.owner.name}</p>
+                  <p className="text-[10px] text-muted-foreground">Owner</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+
+          {/* Dates and Team */}
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Users className="size-3" />
+              <span>{project.team?.name || `Team ID: ${project.teamId}`}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              {project.createdAt && (
+                <div className="flex items-center gap-1" title="Created date">
+                  <Clock className="size-3" />
+                  <span>{fmtDate(project.createdAt, "MMM d")}</span>
+                </div>
               )}
-              title="Due date"
-            >
-              <CalendarDays className="size-3" />
-              {overdue
-                ? `${Math.abs(days)}d overdue`
-                : fmtDate(project.dueDate, "MMM d")}
-            </span>
+              {project.dueDate && (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1",
+                    overdue && "font-medium text-destructive",
+                  )}
+                  title="Due date"
+                >
+                  <CalendarDays className="size-3" />
+                  {overdue
+                    ? `${Math.abs(days)}d overdue`
+                    : fmtDate(project.dueDate, "MMM d")}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>

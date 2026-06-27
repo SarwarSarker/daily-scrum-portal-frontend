@@ -8,7 +8,13 @@ const riskMap: Record<RiskLevel, { label: string; variant: Parameters<typeof Bad
   critical: { label: 'Critical', variant: 'destructive' },
 }
 
-export function RiskBadge({ level }: { level: RiskLevel }) {
-  const conf = riskMap[level]
+export function RiskBadge({ level }: { level?: RiskLevel | string | null }) {
+  // Handle undefined, null, or invalid risk level values
+  if (!level || !(level in riskMap)) {
+    console.warn('Invalid or missing risk level:', level)
+    return <Badge variant="secondary">Unknown</Badge>
+  }
+
+  const conf = riskMap[level as RiskLevel]
   return <Badge variant={conf.variant}>{conf.label}</Badge>
 }

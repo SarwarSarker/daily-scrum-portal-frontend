@@ -1,13 +1,11 @@
 import type { Project } from '@/types'
-import { userById } from '@/mocks/users'
 import type { ProjectFormValues } from './ProjectFormModal'
 
 export function projectToDefaults(p: Project): Partial<ProjectFormValues> {
-  const owner = userById(p.ownerId)
   return {
     projectName: p.projectName,
     description: p.description,
-    owner: owner?.name ?? '',
+    owner: p.ownerId, // Use ownerId directly since we don't have user lookup
     teamId: p.teamId,
     status:
       p.status === 'cancelled' || p.status === 'completed'
