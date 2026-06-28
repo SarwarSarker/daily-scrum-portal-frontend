@@ -3,8 +3,8 @@ import { Card } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { scrumReportsByProject } from '@/mocks/scrumReports'
-import { userById } from '@/mocks/users'
+import { scrumReportsByProject } from '@/mock/scrumReports'
+import { userById } from '@/mock/users'
 import { getInitials, cn } from '@/lib/utils'
 
 export function ProjectTimeline({ projectId }: { projectId: string }) {

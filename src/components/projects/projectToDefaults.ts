@@ -3,7 +3,7 @@ import type { ProjectFormValues } from './ProjectFormModal'
 
 export function projectToDefaults(p: Project): Partial<ProjectFormValues> {
   return {
-    projectName: p.projectName,
+    name: p.projectName,
     description: p.description,
     owner: p.owner?.name || '', // Use owner name instead of ID
     teamId: p.teamId,

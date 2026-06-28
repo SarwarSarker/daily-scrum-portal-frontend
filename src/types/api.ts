@@ -32,7 +32,7 @@ export interface RegisterCredentials {
 // Projects Types
 export interface ProjectData {
   id: string
-  projectName: string
+  name: string
   ownerId: string
   teamId: string
   category?: 'tech' | 'marketing' | 'business'
@@ -67,16 +67,11 @@ export interface ProjectData {
 export type ProjectsResponse = ApiResponse<ProjectData[]>
 
 export interface CreateProjectData {
-  projectName: string
-  ownerId: string
-  teamId: string
-  category?: 'tech' | 'marketing' | 'business'
+  name: string
+  owner_id: number
+  team_id: number
+  created_by: number
   status: 'planning' | 'in_progress' | 'continue_development' | 'on_hold' | 'completed' | 'cancelled'
-  priority?: 'low' | 'medium' | 'high' | 'urgent'
-  currentProgress?: number
-  targetProgress?: number
-  riskLevel?: 'low' | 'medium' | 'high' | 'critical'
-  dueDate?: string
   description: string
   blocker?: string
 }

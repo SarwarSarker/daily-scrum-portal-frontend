@@ -15,8 +15,8 @@ import {
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PriorityBadge } from "@/components/common/PriorityBadge";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
-import { userById } from "@/mocks/users";
-import { projectById } from "@/mocks/projects";
+import { userById } from "@/mock/users";
+import { projectById } from "@/mock/projects";
 import { fmtDate, daysUntil } from "@/lib/date";
 import { getInitials, cn } from "@/lib/utils";
 import type { Task } from "@/types";

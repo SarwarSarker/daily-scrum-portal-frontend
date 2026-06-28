@@ -1,6 +1,6 @@
 import { Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { mockProjects } from '@/mocks/projects'
+import { mockProjects } from '@/mock/projects'
 
 export function FocusListCard() {
   // Pick the lowest-progress active project for the headline focus

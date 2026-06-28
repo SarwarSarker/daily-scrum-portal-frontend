@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { STORAGE_KEYS } from '@/constants'
 
 interface UiState {
   sidebarCollapsed: boolean
@@ -7,7 +6,7 @@ interface UiState {
 }
 
 const initialState: UiState = {
-  sidebarCollapsed: localStorage.getItem(STORAGE_KEYS.sidebarCollapsed) === '1',
+  sidebarCollapsed: localStorage.getItem('scrumly:sidebar-collapsed') === '1',
   mobileSidebarOpen: false,
 }
 
@@ -17,11 +16,11 @@ const uiSlice = createSlice({
   reducers: {
     toggleSidebar(state) {
       state.sidebarCollapsed = !state.sidebarCollapsed
-      localStorage.setItem(STORAGE_KEYS.sidebarCollapsed, state.sidebarCollapsed ? '1' : '0')
+      localStorage.setItem('scrumly:sidebar-collapsed', state.sidebarCollapsed ? '1' : '0')
     },
     setSidebarCollapsed(state, action: PayloadAction<boolean>) {
       state.sidebarCollapsed = action.payload
-      localStorage.setItem(STORAGE_KEYS.sidebarCollapsed, action.payload ? '1' : '0')
+      localStorage.setItem('scrumly:sidebar-collapsed', action.payload ? '1' : '0')
     },
     setMobileSidebarOpen(state, action: PayloadAction<boolean>) {
       state.mobileSidebarOpen = action.payload

@@ -23,8 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useCreateProjectMutation, useUpdateProjectMutation } from '@/utils/apiHelper'
-import type { User, Team } from '@/types'
+import { useCreateProjectMutation, useUpdateProjectMutation, useUsers, useTeams } from '@/utils/apiHelper'
+import { useAppSelector } from '@/redux/hooks'
+import type { CreateProjectData } from '@/types/api'
 
 const statusOptions = [
   { value: 'planning',             label: 'Planning'             },
@@ -35,7 +36,7 @@ const statusOptions = [
 ] as const
 
 const projectSchema = z.object({
-  projectName: z.string().min(3, 'Project name must be at least 3 characters'),
+  name: z.string().min(3, 'Project name must be at least 3 characters'),
   description: z.string().max(280, 'Keep it under 280 characters').optional(),
   owner: z.string().min(1, 'Owner is required'),
   teamId: z.string().min(1, 'Team is required'),
@@ -55,18 +56,19 @@ interface ProjectFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultValues?: Partial<ProjectFormValues>
-  users: User[]
-  teams: Team[]
 }
 
-export function ProjectFormModal({ open, onOpenChange, defaultValues, users, teams }: ProjectFormModalProps) {
+export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectFormModalProps) {
+  const currentUser = useAppSelector((s) => s.auth.user)
+  const { data: users = [] } = useUsers()
+  const { data: teams = [] } = useTeams()
   const createProjectMutation = useCreateProjectMutation()
   const updateProjectMutation = useUpdateProjectMutation()
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      projectName: '',
+      name: '',
       description: '',
       owner: '',
       teamId: teams[0]?.id ?? '',
@@ -84,41 +86,36 @@ export function ProjectFormModal({ open, onOpenChange, defaultValues, users, tea
 
   const onSubmit = async (data: ProjectFormValues) => {
     try {
+      if (!currentUser?.id) {
+        toast.error('You must be logged in to create projects')
+        return
+      }
+
+      // Transform form data to API format (snake_case with number IDs)
+      const payload: CreateProjectData = {
+        name: data.name,
+        owner_id: parseInt(data.owner),
+        team_id: parseInt(data.teamId),
+        created_by: parseInt(currentUser.id), // Use logged-in user ID
+        status: data.status,
+        description: data.description || '',
+        blocker: data.blocker || '',
+      }
+
       if (defaultValues) {
-        // Update existing project
+        // For updates, we need the project ID - this should come from the project being edited
+        const projectId = defaultValues.name || '' // This should be the actual ID
         await updateProjectMutation.mutateAsync({
-          id: defaultValues.projectName || '', // You'll need to pass the project ID
+          id: projectId,
           project: {
-            id: defaultValues.projectName || '', // Include ID in the project object
-            projectName: data.projectName,
-            ownerId: data.owner,
-            teamId: data.teamId,
-            category: 'tech' as const, // Default or add to form
-            status: data.status as 'planning' | 'in_progress' | 'continue_development' | 'on_hold' | 'completed',
-            priority: 'medium' as const, // Default or add to form
-            currentProgress: 0,
-            targetProgress: 100,
-            riskLevel: 'low' as const,
-            dueDate: new Date().toISOString(),
-            description: data.description || '',
-          }
+            ...payload,
+            id: projectId, // Add id to satisfy UpdateProjectData type
+          },
         })
         toast.success('Project updated successfully')
       } else {
         // Create new project
-        await createProjectMutation.mutateAsync({
-          projectName: data.projectName,
-          ownerId: data.owner,
-          teamId: data.teamId,
-          category: 'tech' as const, // Default or add to form
-          status: data.status as 'planning' | 'in_progress' | 'continue_development' | 'on_hold' | 'completed',
-          priority: 'medium' as const, // Default or add to form
-          currentProgress: 0,
-          targetProgress: 100,
-          riskLevel: 'low' as const,
-          dueDate: new Date().toISOString(),
-          description: data.description || '',
-        })
+        await createProjectMutation.mutateAsync(payload)
         toast.success('Project created successfully')
       }
       form.reset()
@@ -145,10 +142,10 @@ export function ProjectFormModal({ open, onOpenChange, defaultValues, users, tea
                 <CardTitle className="text-base">Project Details</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Project Name" error={form.formState.errors.projectName?.message}>
+                <Field label="Project Name" error={form.formState.errors.name?.message}>
                   <Input
                     placeholder="e.g. Customer Insights Platform"
-                    {...form.register('projectName')}
+                    {...form.register('name')}
                   />
                 </Field>
 
@@ -287,7 +284,7 @@ function LivePreview({ control, teams }: LivePreviewProps) {
         <CardTitle className="text-base">Live Preview</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        <Row label="Project" value={values.projectName || 'Untitled'} />
+        <Row label="Project" value={values.name || 'Untitled'} />
         <Row label="Project Lead" value={values.owner || 'Not assigned'} />
         <Row label="Team" value={team?.name ?? '—'} />
         <Row label="Status" value={statusLabel} />

@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { mockUsers } from '@/mocks/users'
+import { mockUsers } from '@/mock/users'
 
 const schema = z.object({
   name: z.string().min(2, 'Team name must be at least 2 characters'),

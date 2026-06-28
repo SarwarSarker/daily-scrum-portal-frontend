@@ -14,9 +14,9 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { TaskTable } from '@/components/tasks/TaskTable'
 import { TaskDrawer } from '@/components/tasks/TaskDrawer'
 import { TaskFormModal, type TaskFormValues } from '@/components/tasks/TaskFormModal'
-import { mockTasks } from '@/mocks/tasks'
-import { mockProjects } from '@/mocks/projects'
-import { userById } from '@/mocks/users'
+import { mockTasks } from '@/mock/tasks'
+import { mockProjects } from '@/mock/projects'
+import { userById } from '@/mock/users'
 import type { Task } from '@/types'
 
 function taskToDefaults(t: Task): Partial<TaskFormValues> {

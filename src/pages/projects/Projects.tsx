@@ -4,57 +4,55 @@ import { PageHeader } from '@/components/common/PageHeader'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/common/EmptyState'
 import { ProjectCard } from '@/components/projects/ProjectCard'
-import {
-  ProjectFilters,
-  type ProjectFiltersValue,
-} from '@/components/projects/ProjectFilters'
+import { ProjectFilters, type ProjectFiltersValue } from '@/components/projects/ProjectFilters'
 import { ProjectFormModal } from '@/components/projects/ProjectFormModal'
 import { projectToDefaults } from '@/components/projects/projectToDefaults'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useProjects, useUsers, useTeams } from '@/utils/apiHelper'
+import { useProjects } from '@/utils/apiHelper'
 import type { Project } from '@/types'
 
 export function ProjectsPage() {
+  // State
   const [filters, setFilters] = useState<ProjectFiltersValue>({
     query: '',
     category: 'all',
     status: 'all',
     priority: 'all',
   })
+
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
 
-  // Fetch projects, users, and teams from API
+  // Fetch projects using new API
   const { data: projects = [], isLoading, error } = useProjects()
-  const { data: users = [] } = useUsers()
-  const { data: teams = [] } = useTeams()
-  console.log("🚀 ~ ProjectsPage ~ projects:", projects)
 
+  // Filter projects based on search and filters
   const filtered = useMemo(() => {
     return projects.filter((p) => {
-      // Filter by category (only if project has category and filter is not 'all')
+      // Filter by category
       if (filters.category !== 'all' && p.category !== filters.category) return false
-      // Filter by status (status is required)
+
+      // Filter by status
       if (filters.status !== 'all' && p.status !== filters.status) return false
-      // Filter by priority (only if project has priority and filter is not 'all')
+
+      // Filter by priority
       if (filters.priority !== 'all' && p.priority !== filters.priority) return false
-      // Filter by query
+
+      // Filter by search query
       if (filters.query) {
         const q = filters.query.toLowerCase()
-        if (
-          !p.projectName.toLowerCase().includes(q) &&
-          !p.description.toLowerCase().includes(q)
-        ) {
-          return false
-        }
+        const matchName = p.name.toLowerCase().includes(q)
+        const matchDesc = p.description.toLowerCase().includes(q)
+        if (!matchName && !matchDesc) return false
       }
+
       return true
     })
   }, [projects, filters])
 
-  // Handle loading and error states
+  // Loading state
   if (isLoading) {
     return (
       <>
@@ -110,19 +108,18 @@ export function ProjectsPage() {
     )
   }
 
+  // Error state
   if (error) {
-    console.error('Projects page error:', error)
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center max-w-md">
           <div className="text-destructive mb-2">Failed to load projects</div>
-          <div className="text-sm text-muted-foreground">
-            {error instanceof Error ? error.message : 'Please check your connection and try again.'}
+          <div className="text-sm text-muted-foreground mb-4">
+            Please check your connection and try again.
           </div>
           <Button
             variant="outline"
             size="sm"
-            className="mt-4"
             onClick={() => window.location.reload()}
           >
             Retry
@@ -132,7 +129,7 @@ export function ProjectsPage() {
     )
   }
 
-  // Show empty state if no projects returned
+  // Empty state
   if (projects.length === 0) {
     return (
       <>
@@ -149,11 +146,21 @@ export function ProjectsPage() {
           title="No projects yet"
           description="Get started by creating your first project."
         />
-        <ProjectFormModal open={createOpen} onOpenChange={setCreateOpen} users={users} teams={teams} />
+        <ProjectFormModal
+          open={createOpen || Boolean(editing)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setCreateOpen(false)
+              setEditing(null)
+            }
+          }}
+          defaultValues={editing ? projectToDefaults(editing) : undefined}
+        />
       </>
     )
   }
 
+  // Main content
   return (
     <>
       <PageHeader
@@ -197,18 +204,16 @@ export function ProjectsPage() {
         </div>
       )}
 
-      <ProjectFormModal open={createOpen} onOpenChange={setCreateOpen} users={users} teams={teams} />
-
-      {editing && (
-        <ProjectFormModal
-          key={editing.id}
-          open={Boolean(editing)}
-          onOpenChange={(o) => !o && setEditing(null)}
-          defaultValues={projectToDefaults(editing)}
-          users={users}
-          teams={teams}
-        />
-      )}
+      <ProjectFormModal
+        open={createOpen || Boolean(editing)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCreateOpen(false)
+            setEditing(null)
+          }
+        }}
+        defaultValues={editing ? projectToDefaults(editing) : undefined}
+      />
     </>
   )
 }

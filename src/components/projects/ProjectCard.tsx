@@ -9,7 +9,6 @@ import {
   Users,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +29,7 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
+  console.log("🚀 ~ ProjectCard ~ project:", project)
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Get status color
@@ -46,8 +46,6 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
   };
 
   const statusColor = getStatusColor(project.status);
-
-  const currentProgress = project.currentProgress ?? 0;
 
   return (
     <Card className={cn(
@@ -67,7 +65,7 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
               className="flex-1 group/link"
             >
               <h3 className="line-clamp-2 text-lg font-bold text-black leading-snug">
-                {project.projectName}
+                {project.name}
               </h3>
             </Link>
             <DropdownMenu>
@@ -113,22 +111,6 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
           </p>
         )}
 
-        {/* Progress Section */}
-        {project.currentProgress !== undefined && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Progress</span>
-              <span className="text-sm text-gray-600">{currentProgress}%</span>
-            </div>
-            <div className="relative h-1">
-              <Progress
-                value={currentProgress}
-                indicatorClassName="h-full bg-[#4CAF50] transition-all duration-500"
-                className="h-full bg-[#E0E0E0] rounded-full overflow-hidden"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Footer Section */}
         <div className="space-y-3 pt-2">
@@ -164,13 +146,13 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title={`Remove "${project.projectName}"?`}
+        title={`Remove "${project.name}"?`}
         description="This will delete the project and its scrum history. This action cannot be undone."
         confirmText="Remove"
         destructive
         onConfirm={() => {
           if (onRemove) onRemove(project);
-          else toast.success(`Project "${project.projectName}" removed`);
+          else toast.success(`Project "${project.name}" removed`);
         }}
       />
     </Card>

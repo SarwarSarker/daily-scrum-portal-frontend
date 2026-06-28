@@ -26,8 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockProjects, projectById } from "@/mocks/projects";
-import { mockUsers } from "@/mocks/users";
+import { mockProjects, projectById } from "@/mock/projects";
+import { mockUsers } from "@/mock/users";
 
 const priorityOptions = [
   { value: "low", label: "Low" },

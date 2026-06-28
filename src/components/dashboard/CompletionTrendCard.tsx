@@ -1,7 +1,7 @@
 import { Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { mockProjects } from '@/mocks/projects'
-import { mockTasks } from '@/mocks/tasks'
+import { mockProjects } from '@/mock/projects'
+import { mockTasks } from '@/mock/tasks'
 
 export function CompletionTrendCard() {
   const active = mockProjects.filter(

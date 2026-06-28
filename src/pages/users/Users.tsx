@@ -9,8 +9,8 @@ import { UserCard } from '@/components/users/UserCard'
 import { UserTable } from '@/components/users/UserTable'
 import { UserProfileDrawer } from '@/components/users/UserProfileDrawer'
 import { UserFormModal, type UserFormValues } from '@/components/users/UserFormModal'
-import { mockUsers } from '@/mocks/users'
-import { mockTeams } from '@/mocks/teams'
+import { mockUsers } from '@/mock/users'
+import { mockTeams } from '@/mock/teams'
 import type { User } from '@/types'
 
 function userToDefaults(u: User): Partial<UserFormValues> {

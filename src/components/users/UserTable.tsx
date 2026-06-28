@@ -13,8 +13,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { perfByUser } from '@/mocks/performance'
-import { teamById } from '@/mocks/teams'
+import { perfByUser } from '@/mock/performance'
+import { teamById } from '@/mock/teams'
 import { getInitials } from '@/lib/utils'
 import type { User } from '@/types'
 

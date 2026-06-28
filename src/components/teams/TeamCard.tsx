@@ -20,9 +20,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserAvatarGroup } from "@/components/common/UserAvatarGroup";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
-import { mockUsers, userById } from "@/mocks/users";
-import { mockProjects } from "@/mocks/projects";
-import { departmentById } from "@/mocks/teams";
+import { mockUsers, userById } from "@/mock/users";
+import { mockProjects } from "@/mock/projects";
+import { departmentById } from "@/mock/teams";
 import { getInitials, cn } from "@/lib/utils";
 import type { Team } from "@/types";
 

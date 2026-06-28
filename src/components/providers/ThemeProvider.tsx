@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { STORAGE_KEYS } from '@/constants'
 
 export type Theme = 'light' | 'dark' | 'system'
 
@@ -29,7 +28,7 @@ export function ThemeProvider({
 }) {
   const [theme, setThemeState] = React.useState<Theme>(() => {
     if (typeof window === 'undefined') return defaultTheme
-    return (localStorage.getItem(STORAGE_KEYS.theme) as Theme | null) ?? defaultTheme
+    return (localStorage.getItem('scrumly:theme') as Theme | null) ?? defaultTheme
   })
 
   const [resolvedTheme, setResolvedTheme] = React.useState<'light' | 'dark'>(() => resolveTheme(theme))
@@ -41,7 +40,7 @@ export function ThemeProvider({
     root.classList.remove('light', 'dark')
     root.classList.add(resolved)
     root.style.colorScheme = resolved
-    localStorage.setItem(STORAGE_KEYS.theme, theme)
+    localStorage.setItem('scrumly:theme', theme)
   }, [theme])
 
   React.useEffect(() => {

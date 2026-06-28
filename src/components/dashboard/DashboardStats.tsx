@@ -6,8 +6,8 @@ import {
   Layers,
 } from 'lucide-react'
 import { SimpleStatCard } from '@/components/cards/SimpleStatCard'
-import { mockProjects } from '@/mocks/projects'
-import { mockTasks } from '@/mocks/tasks'
+import { mockProjects } from '@/mock/projects'
+import { mockTasks } from '@/mock/tasks'
 
 export function DashboardStats() {
   const active = mockProjects.filter(

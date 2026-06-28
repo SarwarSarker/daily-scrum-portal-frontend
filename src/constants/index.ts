@@ -17,9 +17,3 @@ export const GET_TASKS = `v1/tasks`;
 export const GET_TEAMS = `v1/teams`;
 export const GET_DEPARTMENTS = `v1/departments`;
 
-export const STORAGE_KEYS = {
-  authToken: 'scrumly:auth-token',
-  authUser: 'scrumly:auth-user',
-  theme: 'scrumly:theme',
-  sidebarCollapsed: 'scrumly:sidebar-collapsed',
-} as const

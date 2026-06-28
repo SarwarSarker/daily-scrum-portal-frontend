@@ -50,16 +50,11 @@ export interface ProjectTeam {
 
 export interface Project {
   id: string
-  projectName: string
+  name: string
   ownerId: string
   teamId: string
   category?: 'tech' | 'marketing' | 'business'
   status: ProjectStatus
-  priority?: Priority
-  currentProgress?: number
-  targetProgress?: number
-  riskLevel?: RiskLevel
-  dueDate?: string
   description: string
   blocker?: string
   createdAt?: string

@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { mockTeams } from '@/mocks/teams'
+import { mockTeams } from '@/mock/teams'
 
 const roleOptions = [
   { value: 'admin',     label: 'Admin'     },

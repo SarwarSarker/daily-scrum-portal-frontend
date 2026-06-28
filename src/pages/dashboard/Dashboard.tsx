@@ -6,13 +6,12 @@ import { AreaChart } from '@/components/charts/AreaChart'
 import { BarChart } from '@/components/charts/BarChart'
 import { LineChart } from '@/components/charts/LineChart'
 import { DonutChart } from '@/components/charts/DonutChart'
-import {
-  projectCompletion,
+import { projectCompletion,
   riskDistribution,
   taskTrends,
   teamPerformance,
-  weeklyProductivity,
-} from '@/mocks/analytics'
+  weeklyProductivity, } from '@/mock/analytics'
+
 
 export function DashboardPage() {
   const completionTotal = projectCompletion.reduce((sum, slice) => sum + slice.value, 0)

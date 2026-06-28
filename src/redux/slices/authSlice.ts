@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { STORAGE_KEYS } from '@/constants'
 import type { User } from '@/types'
 
 interface AuthState {
@@ -10,8 +9,8 @@ interface AuthState {
 
 const loadInitial = (): AuthState => {
   try {
-    const token = localStorage.getItem(STORAGE_KEYS.authToken)
-    const rawUser = localStorage.getItem(STORAGE_KEYS.authUser)
+    const token = localStorage.getItem('scrumly:auth-token')
+    const rawUser = localStorage.getItem('scrumly:auth-user')
     const user = rawUser ? (JSON.parse(rawUser) as User) : null
     return { user, token, isAuthenticated: Boolean(token && user) }
   } catch {
@@ -27,21 +26,21 @@ const authSlice = createSlice({
       state.user = action.payload.user
       state.token = action.payload.token
       state.isAuthenticated = true
-      localStorage.setItem(STORAGE_KEYS.authToken, action.payload.token)
-      localStorage.setItem(STORAGE_KEYS.authUser, JSON.stringify(action.payload.user))
+      localStorage.setItem('scrumly:auth-token', action.payload.token)
+      localStorage.setItem('scrumly:auth-user', JSON.stringify(action.payload.user))
     },
     updateUser(state, action: PayloadAction<Partial<User>>) {
       if (state.user) {
         state.user = { ...state.user, ...action.payload }
-        localStorage.setItem(STORAGE_KEYS.authUser, JSON.stringify(state.user))
+        localStorage.setItem('scrumly:auth-user', JSON.stringify(state.user))
       }
     },
     logout(state) {
       state.user = null
       state.token = null
       state.isAuthenticated = false
-      localStorage.removeItem(STORAGE_KEYS.authToken)
-      localStorage.removeItem(STORAGE_KEYS.authUser)
+      localStorage.removeItem('scrumly:auth-token')
+      localStorage.removeItem('scrumly:auth-user')
     },
   },
 })
