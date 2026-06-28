@@ -9,6 +9,10 @@ import {
 } from '@/components/ui/select'
 import type { Project } from '@/types'
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
 export type Category = Project['category'] | 'all'
 export type Status = Project['status'] | 'all'
 export type Priority = Project['priority'] | 'all'
@@ -21,57 +25,161 @@ export interface ProjectFiltersValue {
 }
 
 interface ProjectFiltersProps {
+  /** Current filter values */
   value: ProjectFiltersValue
-  onChange: (v: ProjectFiltersValue) => void
+  /** Callback when filters change */
+  onChange: (values: ProjectFiltersValue) => void
 }
 
-export function ProjectFilters({ value, onChange }: ProjectFiltersProps) {
-  const set = <K extends keyof ProjectFiltersValue>(key: K, v: ProjectFiltersValue[K]) =>
-    onChange({ ...value, [key]: v })
+// ============================================================================
+// CONSTANTS
+// ============================================================================
 
+/**
+ * Available category filter options
+ */
+const CATEGORY_OPTIONS = [
+  { value: 'all', label: 'All categories' },
+  { value: 'tech', label: 'Tech' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'business', label: 'Business' },
+] as const
+
+/**
+ * Available status filter options
+ */
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All status' },
+  { value: 'planning', label: 'Planning' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'continue_development', label: 'Continue Development' },
+  { value: 'on_hold', label: 'On Hold' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+] as const
+
+/**
+ * Available priority filter options
+ */
+const PRIORITY_OPTIONS = [
+  { value: 'all', label: 'All priorities' },
+  { value: 'urgent', label: 'Urgent' },
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' },
+] as const
+
+/**
+ * Select trigger width for filters
+ */
+const SELECT_TRIGGER_WIDTH = 'w-full sm:w-36'
+
+/**
+ * Search input placeholder text
+ */
+const SEARCH_PLACEHOLDER = 'Search projects...'
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Update a single filter value while preserving other filters
+ */
+function updateFilter<K extends keyof ProjectFiltersValue>(
+  currentFilters: ProjectFiltersValue,
+  key: K,
+  value: ProjectFiltersValue[K]
+): ProjectFiltersValue {
+  return {
+    ...currentFilters,
+    [key]: value,
+  }
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+export function ProjectFilters({ value, onChange }: ProjectFiltersProps) {
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+  const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const updatedFilters = updateFilter(value, 'query', event.target.value)
+    onChange(updatedFilters)
+  }
+
+  const handleCategoryChange = (category: string) => {
+    const updatedFilters = updateFilter(value, 'category', category as Category)
+    onChange(updatedFilters)
+  }
+
+  const handleStatusChange = (status: string) => {
+    const updatedFilters = updateFilter(value, 'status', status as Status)
+    onChange(updatedFilters)
+  }
+
+  const handlePriorityChange = (priority: string) => {
+    const updatedFilters = updateFilter(value, 'priority', priority as Priority)
+    onChange(updatedFilters)
+  }
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      {/* Search Input */}
       <div className="relative flex-1">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search projects..."
+          placeholder={SEARCH_PLACEHOLDER}
           value={value.query}
-          onChange={(e) => set('query', e.target.value)}
+          onChange={handleQueryChange}
           className="pl-9"
         />
       </div>
 
-      <Select value={value.category} onValueChange={(v) => set('category', v as Category)}>
-        <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="Category" /></SelectTrigger>
+      {/* Category Filter */}
+      <Select value={value.category} onValueChange={handleCategoryChange}>
+        <SelectTrigger className={SELECT_TRIGGER_WIDTH}>
+          <SelectValue placeholder="Category" />
+        </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All categories</SelectItem>
-          <SelectItem value="tech">Tech</SelectItem>
-          <SelectItem value="marketing">Marketing</SelectItem>
-          <SelectItem value="business">Business</SelectItem>
+          {CATEGORY_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 
-      <Select value={value.status} onValueChange={(v) => set('status', v as Status)}>
-        <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+      {/* Status Filter */}
+      <Select value={value.status} onValueChange={handleStatusChange}>
+        <SelectTrigger className={SELECT_TRIGGER_WIDTH}>
+          <SelectValue placeholder="Status" />
+        </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All status</SelectItem>
-          <SelectItem value="planning">Planning</SelectItem>
-          <SelectItem value="in_progress">In Progress</SelectItem>
-          <SelectItem value="continue_development">Continue Development</SelectItem>
-          <SelectItem value="on_hold">On Hold</SelectItem>
-          <SelectItem value="completed">Completed</SelectItem>
-          <SelectItem value="cancelled">Cancelled</SelectItem>
+          {STATUS_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 
-      <Select value={value.priority} onValueChange={(v) => set('priority', v as Priority)}>
-        <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="Priority" /></SelectTrigger>
+      {/* Priority Filter */}
+      <Select value={value.priority} onValueChange={handlePriorityChange}>
+        <SelectTrigger className={SELECT_TRIGGER_WIDTH}>
+          <SelectValue placeholder="Priority" />
+        </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All priorities</SelectItem>
-          <SelectItem value="urgent">Urgent</SelectItem>
-          <SelectItem value="high">High</SelectItem>
-          <SelectItem value="medium">Medium</SelectItem>
-          <SelectItem value="low">Low</SelectItem>
+          {PRIORITY_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

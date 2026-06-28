@@ -18,7 +18,14 @@ import { useTasks, useProjects, useUsers } from '@/utils/apiHelper'
 import type { Task } from '@/types'
 import type { TaskData, UserData } from '@/types/api'
 
-// Map TaskData from API to local Task type
+// ============================================================================
+// DATA TRANSFORMATION UTILITIES
+// ============================================================================
+
+/**
+ * Maps API task data format to local Task type
+ * Handles field name conversions (camelCase ↔ snake_case)
+ */
 function taskDataToTask(data: TaskData): Task {
   return {
     id: data.id,
@@ -34,57 +41,119 @@ function taskDataToTask(data: TaskData): Task {
     dependencyTaskId: data.dependencyTaskId,
     blocker: data.blocker,
     expectedOutput: data.expectedOutput,
-    start_date: data.startDate, // Map camelCase to snake_case
-    end_date: data.dueDate     // Map camelCase to snake_case
+    start_date: data.startDate,  // API: camelCase → Local: snake_case
+    end_date: data.dueDate,      // API: camelCase → Local: snake_case
   }
 }
 
-function taskToDefaults(t: Task, users: UserData[]): Partial<TaskFormValues> {
-  const owner = users.find(u => u.id === t.assignedTo)
+/**
+ * Converts Task entity to form default values
+ * Handles user ID → name conversion for the form
+ */
+function taskToFormDefaults(task: Task, users: UserData[]): Partial<TaskFormValues> {
+  const assignedUser = users.find(user => user.id === task.assignedTo)
+
   return {
-    projectId: t.projectId,
-    assignedTo: owner?.name ?? '',
-    title: t.title,
-    description: t.description,
-    priority: t.priority,
-    status: t.status,
-    progress: t.progress,
-    startDate: t.start_date,
-    endDate: t.end_date,
-    expectedOutput: t.expectedOutput ?? '',
-    blocker: t.blocker ?? '',
+    projectId: task.projectId,
+    assignedTo: assignedUser?.name ?? '',
+    title: task.title,
+    description: task.description,
+    priority: task.priority,
+    status: task.status,
+    progress: task.progress,
+    startDate: task.start_date,   // Local: snake_case → Form: camelCase
+    endDate: task.end_date,       // Local: snake_case → Form: camelCase
+    expectedOutput: task.expectedOutput ?? '',
+    blocker: task.blocker ?? '',
   }
 }
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 export function TasksPage() {
+  // ============================================================================
+  // DATA FETCHING
+  // ============================================================================
   const { data: taskData = [], isLoading: isLoadingTasks } = useTasks()
   const { data: projects = [], isLoading: isLoadingProjects } = useProjects()
   const { data: users = [] } = useUsers()
 
-  // Convert TaskData[] to Task[]
+  // Transform API data to local format
   const tasks = useMemo(() => taskData.map(taskDataToTask), [taskData])
 
-  const [query, setQuery] = useState('')
+  // ============================================================================
+  // STATE MANAGEMENT
+  // ============================================================================
+  const [searchQuery, setSearchQuery] = useState('')
   const [projectFilter, setProjectFilter] = useState<string>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [activeTask, setActiveTask] = useState<Task | null>(null)
-  const [createOpen, setCreateOpen] = useState(false)
-  const [editing, setEditing] = useState<Task | null>(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
 
-  const filtered = useMemo(() => {
-    return tasks.filter((t) => {
-      if (projectFilter !== 'all' && t.projectId !== projectFilter) return false
-      if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false
-      if (query) {
-        const q = query.toLowerCase()
-        if (!t.title.toLowerCase().includes(q) && !t.description.toLowerCase().includes(q)) {
+  // ============================================================================
+  // FILTERED TASKS
+  // ============================================================================
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      // Project filter
+      if (projectFilter !== 'all' && task.projectId !== projectFilter) {
+        return false
+      }
+
+      // Priority filter
+      if (priorityFilter !== 'all' && task.priority !== priorityFilter) {
+        return false
+      }
+
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        const matchesTitle = task.title.toLowerCase().includes(query)
+        const matchesDescription = task.description.toLowerCase().includes(query)
+
+        if (!matchesTitle && !matchesDescription) {
           return false
         }
       }
+
       return true
     })
-  }, [tasks, query, projectFilter, priorityFilter])
+  }, [tasks, searchQuery, projectFilter, priorityFilter])
 
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+  const handleTaskClick = (task: Task) => {
+    setActiveTask(task)
+  }
+
+  const handleEditTask = (task: Task) => {
+    setActiveTask(null)  // Close drawer first
+    setEditingTask(task)
+  }
+
+  const handleCreateTask = () => {
+    setIsCreateModalOpen(true)
+  }
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false)
+  }
+
+  const closeEditModal = () => {
+    setEditingTask(null)
+  }
+
+  const closeDrawer = () => {
+    setActiveTask(null)
+  }
+
+  // ============================================================================
+  // LOADING STATE
+  // ============================================================================
   if (isLoadingTasks || isLoadingProjects) {
     return (
       <>
@@ -99,39 +168,55 @@ export function TasksPage() {
     )
   }
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
   return (
     <>
+      {/* Page Header */}
       <PageHeader
         title="Tasks"
         description="Triage and track every task across teams."
         actions={
-          <Button variant="gradient" onClick={() => setCreateOpen(true)}>
+          <Button variant="gradient" onClick={handleCreateTask}>
             <Plus /> New task
           </Button>
         }
       />
 
+      {/* Filters Bar */}
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+        {/* Search */}
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search tasks..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
+
+        {/* Project Filter */}
         <Select value={projectFilter} onValueChange={setProjectFilter}>
-          <SelectTrigger className="sm:w-48"><SelectValue placeholder="Project" /></SelectTrigger>
+          <SelectTrigger className="sm:w-48">
+            <SelectValue placeholder="Project" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All projects</SelectItem>
-            {projects.map((p) => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+            {projects.map((project) => (
+              <SelectItem key={project.id} value={project.id}>
+                {project.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
+        {/* Priority Filter */}
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="sm:w-36"><SelectValue placeholder="Priority" /></SelectTrigger>
+          <SelectTrigger className="sm:w-36">
+            <SelectValue placeholder="Priority" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All priorities</SelectItem>
             <SelectItem value="urgent">Urgent</SelectItem>
@@ -142,32 +227,45 @@ export function TasksPage() {
         </Select>
       </div>
 
-      {filtered.length === 0 ? (
-        <EmptyState title="No tasks match" description="Adjust filters or search to see results." />
+      {/* Tasks Table or Empty State */}
+      {filteredTasks.length === 0 ? (
+        <EmptyState
+          title="No tasks match"
+          description="Adjust filters or search to see results."
+        />
       ) : (
-        <TaskTable tasks={filtered} users={users} projects={projects} onRowClick={setActiveTask} onEdit={setEditing} />
+        <TaskTable
+          tasks={filteredTasks}
+          users={users}
+          projects={projects}
+          onRowClick={handleTaskClick}
+          onEdit={handleEditTask}
+        />
       )}
 
+      {/* Task Detail Drawer */}
       <TaskDrawer
         task={activeTask}
         users={users}
         projects={projects}
         open={Boolean(activeTask)}
-        onOpenChange={(o) => !o && setActiveTask(null)}
-        onEdit={(task) => {
-          setActiveTask(null)
-          setEditing(task)
-        }}
+        onOpenChange={closeDrawer}
+        onEdit={handleEditTask}
       />
 
-      <TaskFormModal open={createOpen} onOpenChange={setCreateOpen} />
+      {/* Create Task Modal */}
+      <TaskFormModal
+        open={isCreateModalOpen}
+        onOpenChange={closeCreateModal}
+      />
 
-      {editing && (
+      {/* Edit Task Modal */}
+      {editingTask && (
         <TaskFormModal
-          key={editing.id}
-          open={Boolean(editing)}
-          onOpenChange={(o) => !o && setEditing(null)}
-          defaultValues={taskToDefaults(editing, users)}
+          key={editingTask.id}
+          open={Boolean(editingTask)}
+          onOpenChange={closeEditModal}
+          defaultValues={taskToFormDefaults(editingTask, users)}
         />
       )}
     </>

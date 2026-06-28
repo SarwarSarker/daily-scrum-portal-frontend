@@ -27,15 +27,34 @@ import { useCreateProjectMutation, useUpdateProjectMutation, useUsers, useTeams 
 import { useAppSelector } from '@/redux/hooks'
 import type { CreateProjectData } from '@/types/api'
 
-const statusOptions = [
-  { value: 'planning',             label: 'Planning'             },
-  { value: 'in_progress',          label: 'In Progress'          },
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+/**
+ * Available project status options
+ */
+const STATUS_OPTIONS = [
+  { value: 'planning', label: 'Planning' },
+  { value: 'in_progress', label: 'In Progress' },
   { value: 'continue_development', label: 'Continue Development' },
-  { value: 'on_hold',              label: 'On Hold'              },
-  { value: 'completed',            label: 'Completed'            },
+  { value: 'on_hold', label: 'On Hold' },
+  { value: 'completed', label: 'Completed' },
 ] as const
 
-const projectSchema = z.object({
+/**
+ * Default project status
+ */
+const DEFAULT_STATUS = 'in_progress'
+
+// ============================================================================
+// FORM SCHEMA & TYPES
+// ============================================================================
+
+/**
+ * Project form validation schema
+ */
+const projectFormSchema = z.object({
   name: z.string().min(3, 'Project name must be at least 3 characters'),
   description: z.string().max(280, 'Keep it under 280 characters').optional(),
   owner: z.string().min(1, 'Owner is required'),
@@ -50,205 +69,61 @@ const projectSchema = z.object({
   blocker: z.string().optional(),
 })
 
-export type ProjectFormValues = z.infer<typeof projectSchema>
+export type ProjectFormValues = z.infer<typeof projectFormSchema>
 
 interface ProjectFormModalProps {
+  /** Whether the modal is open */
   open: boolean
+  /** Callback to control modal state */
   onOpenChange: (open: boolean) => void
+  /** Default values for edit mode */
   defaultValues?: Partial<ProjectFormValues>
 }
 
-export function ProjectFormModal({ open, onOpenChange, defaultValues }: ProjectFormModalProps) {
-  const currentUser = useAppSelector((s) => s.auth.user)
-  const { data: users = [] } = useUsers()
-  const { data: teams = [] } = useTeams()
-  const createProjectMutation = useCreateProjectMutation()
-  const updateProjectMutation = useUpdateProjectMutation()
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
 
-  const form = useForm<ProjectFormValues>({
-    resolver: zodResolver(projectSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      owner: '',
-      teamId: teams[0]?.id ?? '',
-      status: 'in_progress',
-      blocker: '',
-    },
-  })
-
-  // Reset form when defaultValues change (for editing)
-  useEffect(() => {
-    if (defaultValues) {
-      form.reset(defaultValues)
-    }
-  }, [defaultValues, form])
-
-  const onSubmit = async (data: ProjectFormValues) => {
-    try {
-      if (!currentUser?.id) {
-        toast.error('You must be logged in to create projects')
-        return
-      }
-
-      // Transform form data to API format (snake_case with number IDs)
-      const payload: CreateProjectData = {
-        name: data.name,
-        owner_id: parseInt(data.owner),
-        team_id: parseInt(data.teamId),
-        created_by: parseInt(currentUser.id), // Use logged-in user ID
-        status: data.status,
-        description: data.description || '',
-        blocker: data.blocker || '',
-      }
-
-      if (defaultValues) {
-        // For updates, we need the project ID - this should come from the project being edited
-        const projectId = defaultValues.name || '' // This should be the actual ID
-        await updateProjectMutation.mutateAsync({
-          id: projectId,
-          project: {
-            ...payload,
-            id: projectId, // Add id to satisfy UpdateProjectData type
-          },
-        })
-        toast.success('Project updated successfully')
-      } else {
-        // Create new project
-        await createProjectMutation.mutateAsync(payload)
-        toast.success('Project created successfully')
-      }
-      form.reset()
-      onOpenChange(false)
-    } catch {
-      toast.error('Failed to save project. Please try again.')
-    }
+/**
+ * Transform form values to API payload format
+ */
+function transformToApiPayload(
+  formValues: ProjectFormValues,
+  currentUserId: string
+): CreateProjectData {
+  return {
+    name: formValues.name,
+    owner_id: parseInt(formValues.owner),
+    team_id: parseInt(formValues.teamId),
+    created_by: parseInt(currentUserId),
+    status: formValues.status,
+    description: formValues.description || '',
+    blocker: formValues.blocker || '',
   }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{defaultValues ? 'Edit project' : 'Create project'}</DialogTitle>
-          <DialogDescription>
-            All fields populate the live preview as you type.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base">Project Details</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Project Name" error={form.formState.errors.name?.message}>
-                  <Input
-                    placeholder="e.g. Customer Insights Platform"
-                    {...form.register('name')}
-                  />
-                </Field>
-
-                <Field label="Project Lead" error={form.formState.errors.owner?.message}>
-                  <Controller
-                    control={form.control}
-                    name="owner"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {users.map((u) => (
-                            <SelectItem key={u.id} value={u.name}>
-                              {u.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </Field>
-
-                <Field
-                  label="Short Description"
-                  error={form.formState.errors.description?.message}
-                  className="sm:col-span-2"
-                >
-                  <Textarea
-                    rows={2}
-                    placeholder="One-line summary of the project goal"
-                    {...form.register('description')}
-                  />
-                </Field>
-
-                <Field label="Team" error={form.formState.errors.teamId?.message}>
-                  <Controller
-                    control={form.control}
-                    name="teamId"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {teams.map((t) => (
-                            <SelectItem key={t.id} value={t.id}>
-                              {t.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </Field>
-
-                <Field label="Status" className="">
-                  <Controller
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((s) => (
-                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </Field>
-              </CardContent>
-            </Card>
-
-            <LivePreview control={form.control} teams={teams} />
-          </div>
-
-          <div className="grid grid-cols-1 gap-5">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Blocker / Risk</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Field label="Blocker / Risk">
-                  <Textarea rows={3} placeholder="Write blocker if any" {...form.register('blocker')} />
-                </Field>
-              </CardContent>
-            </Card>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="gradient">
-              {defaultValues ? 'Save changes' : 'Create project'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
 }
 
-function Field({
+/**
+ * Get default form values
+ */
+function getDefaultFormValues(teams: Array<{ id: string }>): Partial<ProjectFormValues> {
+  return {
+    name: '',
+    description: '',
+    owner: '',
+    teamId: teams[0]?.id ?? '',
+    status: DEFAULT_STATUS,
+    blocker: '',
+  }
+}
+
+// ============================================================================
+// SUBCOMPONENTS
+// ============================================================================
+
+/**
+ * Reusable form field component with label and error display
+ */
+function FormField({
   label,
   error,
   children,
@@ -261,21 +136,29 @@ function Field({
 }) {
   return (
     <div className={`space-y-1.5 ${className ?? ''}`}>
-      <Label className="text-xs font-semibold uppercase tracking-wider text-primary">{label}</Label>
+      <Label className="text-xs font-semibold uppercase tracking-wider text-primary">
+        {label}
+      </Label>
       {children}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }
 
-interface LivePreviewProps {
+/**
+ * Live preview card component
+ */
+function LivePreview({
+  control,
+  teams,
+}: {
   control: Control<ProjectFormValues>
   teams: Array<{ id: string; name: string }>
-}
-
-function LivePreview({ control, teams }: LivePreviewProps) {
+}) {
   const values = useWatch({ control })
-  const statusLabel = statusOptions.find((s) => s.value === values.status)?.label ?? '—'
+
+  // Find display values
+  const statusLabel = STATUS_OPTIONS.find(s => s.value === values.status)?.label ?? '—'
   const team = teams.find(t => t.id === values.teamId)
 
   return (
@@ -284,20 +167,279 @@ function LivePreview({ control, teams }: LivePreviewProps) {
         <CardTitle className="text-base">Live Preview</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        <Row label="Project" value={values.name || 'Untitled'} />
-        <Row label="Project Lead" value={values.owner || 'Not assigned'} />
-        <Row label="Team" value={team?.name ?? '—'} />
-        <Row label="Status" value={statusLabel} />
+        <PreviewRow label="Project" value={values.name || 'Untitled'} />
+        <PreviewRow label="Project Lead" value={values.owner || 'Not assigned'} />
+        <PreviewRow label="Team" value={team?.name ?? '—'} />
+        <PreviewRow label="Status" value={statusLabel} />
       </CardContent>
     </Card>
   )
 }
 
-function Row({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
+/**
+ * Display row for preview
+ */
+function PreviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <span className="font-semibold">{label}:</span>{' '}
-      <span className={valueClass ?? 'text-muted-foreground'}>{value}</span>
+      <span className="text-muted-foreground">{value}</span>
     </div>
+  )
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+export function ProjectFormModal({
+  open,
+  onOpenChange,
+  defaultValues,
+}: ProjectFormModalProps) {
+  // ============================================================================
+  // DATA FETCHING
+  // ============================================================================
+  const currentUser = useAppSelector(state => state.auth.user)
+  const { data: users = [], isLoading: isLoadingUsers } = useUsers()
+  const { data: teams = [], isLoading: isLoadingTeams } = useTeams()
+  const createProjectMutation = useCreateProjectMutation()
+  const updateProjectMutation = useUpdateProjectMutation()
+
+  // ============================================================================
+  // FORM SETUP
+  // ============================================================================
+  const form = useForm<ProjectFormValues>({
+    resolver: zodResolver(projectFormSchema),
+    defaultValues: getDefaultFormValues(teams),
+  })
+
+  // ============================================================================
+  // EFFECTS
+  // ============================================================================
+  // Reset form when defaultValues change (for editing)
+  useEffect(() => {
+    if (defaultValues) {
+      form.reset(defaultValues)
+    }
+  }, [defaultValues, form])
+
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+  const handleSubmit = async (data: ProjectFormValues) => {
+    try {
+      if (!currentUser?.id) {
+        toast.error('You must be logged in to create projects')
+        return
+      }
+
+      // Transform form data to API format
+      const payload = transformToApiPayload(data, currentUser.id)
+
+      if (defaultValues) {
+        // Update existing project
+        const projectId = defaultValues.name || '' // TODO: This should be the actual project ID
+        await updateProjectMutation.mutateAsync({
+          id: projectId,
+          project: {
+            ...payload,
+            id: projectId,
+          },
+        })
+        toast.success('Project updated successfully')
+      } else {
+        // Create new project
+        await createProjectMutation.mutateAsync(payload)
+        toast.success('Project created successfully')
+      }
+
+      form.reset()
+      onOpenChange(false)
+    } catch {
+      toast.error('Failed to save project. Please try again.')
+    }
+  }
+
+  const handleCancel = () => {
+    form.reset()
+    onOpenChange(false)
+  }
+
+  // ============================================================================
+  // LOADING STATE
+  // ============================================================================
+  if (isLoadingUsers || isLoadingTeams) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <div className="flex items-center justify-center py-12">
+            <div className="text-muted-foreground">Loading form data...</div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+  const isEditMode = Boolean(defaultValues)
+  const submitButtonText = isEditMode ? 'Save changes' : 'Create project'
+  const dialogTitle = isEditMode ? 'Edit project' : 'Create project'
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
+        {/* Header */}
+        <DialogHeader>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>
+            All fields populate the live preview as you type.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Form */}
+        <form className="space-y-5" onSubmit={form.handleSubmit(handleSubmit)}>
+          {/* Main Form Area */}
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            {/* Form Fields */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-base">Project Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {/* Project Name */}
+                <FormField
+                  label="Project Name"
+                  error={form.formState.errors.name?.message}
+                >
+                  <Input
+                    placeholder="e.g. Customer Insights Platform"
+                    {...form.register('name')}
+                  />
+                </FormField>
+
+                {/* Project Lead */}
+                <FormField
+                  label="Project Lead"
+                  error={form.formState.errors.owner?.message}
+                >
+                  <Controller
+                    control={form.control}
+                    name="owner"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {users.map((user) => (
+                            <SelectItem key={user.id} value={user.name}>
+                              {user.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </FormField>
+
+                {/* Description */}
+                <FormField
+                  label="Short Description"
+                  error={form.formState.errors.description?.message}
+                  className="sm:col-span-2"
+                >
+                  <Textarea
+                    rows={2}
+                    placeholder="One-line summary of the project goal"
+                    {...form.register('description')}
+                  />
+                </FormField>
+
+                {/* Team */}
+                <FormField
+                  label="Team"
+                  error={form.formState.errors.teamId?.message}
+                >
+                  <Controller
+                    control={form.control}
+                    name="teamId"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {teams.map((team) => (
+                            <SelectItem key={team.id} value={team.id}>
+                              {team.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </FormField>
+
+                {/* Status */}
+                <FormField label="Status">
+                  <Controller
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </FormField>
+              </CardContent>
+            </Card>
+
+            {/* Live Preview */}
+            <LivePreview control={form.control} teams={teams} />
+          </div>
+
+          {/* Blocker/Risk Section */}
+          <div className="grid grid-cols-1 gap-5">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Blocker / Risk</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FormField label="Blocker / Risk">
+                  <Textarea
+                    rows={3}
+                    placeholder="Write blocker if any"
+                    {...form.register('blocker')}
+                  />
+                </FormField>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Footer Actions */}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="gradient">
+              {submitButtonText}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

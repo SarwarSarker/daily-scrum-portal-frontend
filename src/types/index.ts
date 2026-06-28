@@ -55,6 +55,11 @@ export interface Project {
   teamId: string
   category?: 'tech' | 'marketing' | 'business'
   status: ProjectStatus
+  priority?: Priority
+  currentProgress?: number
+  targetProgress?: number
+  riskLevel?: 'low' | 'medium' | 'high' | 'critical'
+  dueDate?: string
   description: string
   blocker?: string
   createdAt?: string
