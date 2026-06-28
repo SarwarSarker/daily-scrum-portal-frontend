@@ -9,15 +9,16 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Textarea } from '@/components/ui/textarea'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { PriorityBadge } from '@/components/common/PriorityBadge'
-import { userById } from '@/mock/users'
-import { projectById } from '@/mock/projects'
 import { fmtDate, daysUntil, timeAgo } from '@/lib/date'
 import { getInitials } from '@/lib/utils'
 import { useAppSelector } from '@/redux/hooks'
 import type { Task } from '@/types'
+import type { UserData, ProjectData } from '@/types/api'
 
 interface TaskDrawerProps {
   task: Task | null
+  users: UserData[]
+  projects: ProjectData[]
   open: boolean
   onOpenChange: (open: boolean) => void
   onEdit?: (task: Task) => void
@@ -45,17 +46,17 @@ const seedComments = (taskId: string): Comment[] => [
   },
 ]
 
-export function TaskDrawer({ task, open, onOpenChange, onEdit }: TaskDrawerProps) {
+export function TaskDrawer({ task, users, projects, open, onOpenChange, onEdit }: TaskDrawerProps) {
   const [comments, setComments] = useState<Comment[]>(() => (task ? seedComments(task.id) : []))
   const [draft, setDraft] = useState('')
   const me = useAppSelector((s) => s.auth.user)
 
   if (!task) return null
 
-  const assignee = userById(task.assignedTo)
-  const creator = userById(task.createdBy)
-  const project = projectById(task.projectId)
-  const days = daysUntil(task.dueDate)
+  const assignee = users.find(user => user.id === task.assignedTo)
+  const creator = users.find(user => user.id === task.createdBy)
+  const project = projects.find(p => p.id === task.projectId)
+  const days = daysUntil(task.end_date)
 
   const submitComment = () => {
     if (!draft.trim()) return
@@ -78,7 +79,7 @@ export function TaskDrawer({ task, open, onOpenChange, onEdit }: TaskDrawerProps
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <SheetDescription className="text-[10px] uppercase tracking-wider">
-                {project?.projectName ?? 'Task'}
+                {project?.name ?? 'Task'}
               </SheetDescription>
               <SheetTitle className="text-xl">{task.title}</SheetTitle>
             </div>

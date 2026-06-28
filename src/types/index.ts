@@ -81,8 +81,8 @@ export interface Task {
   dependencyTaskId?: string
   blocker?: string
   expectedOutput?: string
-  startDate: string
-  dueDate: string
+  start_date: string
+  end_date: string
 }
 
 export interface ProjectUpdate {

@@ -15,14 +15,15 @@ import {
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PriorityBadge } from "@/components/common/PriorityBadge";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
-import { userById } from "@/mock/users";
-import { projectById } from "@/mock/projects";
 import { fmtDate, daysUntil } from "@/lib/date";
 import { getInitials, cn } from "@/lib/utils";
 import type { Task } from "@/types";
+import type { UserData, ProjectData } from "@/types/api";
 
 interface TaskTableProps {
   tasks: Task[];
+  users: UserData[];
+  projects: ProjectData[];
   onRowClick?: (task: Task) => void;
   onEdit?: (task: Task) => void;
   onRemove?: (task: Task) => void;
@@ -30,6 +31,8 @@ interface TaskTableProps {
 
 export function TaskTable({
   tasks,
+  users,
+  projects,
   onRowClick,
   onEdit,
   onRemove,
@@ -55,9 +58,9 @@ export function TaskTable({
             </thead>
             <tbody>
               {tasks.map((t) => {
-                const u = userById(t.assignedTo);
-                const p = projectById(t.projectId);
-                const days = daysUntil(t.dueDate);
+                const u = users.find(user => user.id === t.assignedTo);
+                const p = projects.find(project => project.id === t.projectId);
+                const days = daysUntil(t.end_date);
                 const overdue = days < 0 && t.status !== "completed";
                 return (
                   <tr
@@ -69,7 +72,7 @@ export function TaskTable({
                       <p className="font-medium">{t.title}</p>
                     </td>
                     <td className="px-5 py-3 text-xs text-muted-foreground">
-                      {p?.projectName}
+                      {p?.name}
                     </td>
                     <td className="px-5 py-3">
                       {u && (

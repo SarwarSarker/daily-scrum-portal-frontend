@@ -14,13 +14,33 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { TaskTable } from '@/components/tasks/TaskTable'
 import { TaskDrawer } from '@/components/tasks/TaskDrawer'
 import { TaskFormModal, type TaskFormValues } from '@/components/tasks/TaskFormModal'
-import { mockTasks } from '@/mock/tasks'
-import { mockProjects } from '@/mock/projects'
-import { userById } from '@/mock/users'
+import { useTasks, useProjects, useUsers } from '@/utils/apiHelper'
 import type { Task } from '@/types'
+import type { TaskData, UserData } from '@/types/api'
 
-function taskToDefaults(t: Task): Partial<TaskFormValues> {
-  const owner = userById(t.assignedTo)
+// Map TaskData from API to local Task type
+function taskDataToTask(data: TaskData): Task {
+  return {
+    id: data.id,
+    projectId: data.projectId,
+    assignedTo: data.assignedTo,
+    createdBy: data.createdBy,
+    title: data.title,
+    description: data.description,
+    taskType: data.taskType,
+    status: data.status,
+    priority: data.priority,
+    progress: data.progress,
+    dependencyTaskId: data.dependencyTaskId,
+    blocker: data.blocker,
+    expectedOutput: data.expectedOutput,
+    start_date: data.startDate, // Map camelCase to snake_case
+    end_date: data.dueDate     // Map camelCase to snake_case
+  }
+}
+
+function taskToDefaults(t: Task, users: UserData[]): Partial<TaskFormValues> {
+  const owner = users.find(u => u.id === t.assignedTo)
   return {
     projectId: t.projectId,
     assignedTo: owner?.name ?? '',
@@ -29,15 +49,21 @@ function taskToDefaults(t: Task): Partial<TaskFormValues> {
     priority: t.priority,
     status: t.status,
     progress: t.progress,
-    startDate: t.startDate,
-    endDate: t.dueDate,
+    startDate: t.start_date,
+    endDate: t.end_date,
     expectedOutput: t.expectedOutput ?? '',
     blocker: t.blocker ?? '',
   }
 }
 
 export function TasksPage() {
-  const [tasks] = useState<Task[]>(mockTasks)
+  const { data: taskData = [], isLoading: isLoadingTasks } = useTasks()
+  const { data: projects = [], isLoading: isLoadingProjects } = useProjects()
+  const { data: users = [] } = useUsers()
+
+  // Convert TaskData[] to Task[]
+  const tasks = useMemo(() => taskData.map(taskDataToTask), [taskData])
+
   const [query, setQuery] = useState('')
   const [projectFilter, setProjectFilter] = useState<string>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
@@ -58,6 +84,20 @@ export function TasksPage() {
       return true
     })
   }, [tasks, query, projectFilter, priorityFilter])
+
+  if (isLoadingTasks || isLoadingProjects) {
+    return (
+      <>
+        <PageHeader
+          title="Tasks"
+          description="Triage and track every task across teams."
+        />
+        <div className="flex items-center justify-center py-12">
+          <div className="text-muted-foreground">Loading tasks...</div>
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
@@ -85,8 +125,8 @@ export function TasksPage() {
           <SelectTrigger className="sm:w-48"><SelectValue placeholder="Project" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All projects</SelectItem>
-            {mockProjects.map((p) => (
-              <SelectItem key={p.id} value={p.id}>{p.projectName}</SelectItem>
+            {projects.map((p) => (
+              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -105,11 +145,13 @@ export function TasksPage() {
       {filtered.length === 0 ? (
         <EmptyState title="No tasks match" description="Adjust filters or search to see results." />
       ) : (
-        <TaskTable tasks={filtered} onRowClick={setActiveTask} onEdit={setEditing} />
+        <TaskTable tasks={filtered} users={users} projects={projects} onRowClick={setActiveTask} onEdit={setEditing} />
       )}
 
       <TaskDrawer
         task={activeTask}
+        users={users}
+        projects={projects}
         open={Boolean(activeTask)}
         onOpenChange={(o) => !o && setActiveTask(null)}
         onEdit={(task) => {
@@ -125,7 +167,7 @@ export function TasksPage() {
           key={editing.id}
           open={Boolean(editing)}
           onOpenChange={(o) => !o && setEditing(null)}
-          defaultValues={taskToDefaults(editing)}
+          defaultValues={taskToDefaults(editing, users)}
         />
       )}
     </>
