@@ -1,10 +1,11 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { AUTH_TOKEN_KEY } from '@/constants'
 
 export function ProtectedRoute() {
   const location = useLocation()
 
   // Check if user is authenticated by verifying token exists
-  const token = localStorage.getItem('scrumly:auth-token')
+  const token = localStorage.getItem(AUTH_TOKEN_KEY)
   const isAuthenticated = !!token
 
   if (!isAuthenticated) {

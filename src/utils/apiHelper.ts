@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { API_BASE_URL, SIGNIN_USER, GET_PROJECTS, GET_USERS, GET_PROFILE, GET_TASKS, GET_TEAMS, GET_DEPARTMENTS } from '@/constants'
+import { API_BASE_URL, SIGNIN_USER, GET_PROJECTS, GET_USERS, GET_PROFILE, GET_TASKS, GET_TEAMS, GET_DEPARTMENTS, AUTH_TOKEN_KEY, AUTH_USER_KEY } from '@/constants'
 import type { ProjectData, CreateProjectData, UpdateProjectData, UserData, CreateUserData, UpdateUserData, TaskData, CreateTaskData, UpdateTaskData, TeamData, CreateTeamData, UpdateTeamData, DepartmentData, CreateDepartmentData, UpdateDepartmentData, LoginCredentials, LoginResponse } from '@/types/api'
 
 // ============================================
@@ -8,7 +8,7 @@ import type { ProjectData, CreateProjectData, UpdateProjectData, UserData, Creat
 
 // Get auth token from localStorage
 function getAuthToken(): string | null {
-  return localStorage.getItem('scrumly:auth-token')
+  return localStorage.getItem(AUTH_TOKEN_KEY)
 }
 
 // Make authenticated API calls
@@ -26,10 +26,15 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
   })
 
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      localStorage.removeItem('scrumly:auth-token')
-      localStorage.removeItem('scrumly:auth-user')
-      window.location.href = '/login'
+    // 401 = token missing/invalid/expired -> session is dead, log out.
+    // 403 = token is valid but this resource is off-limits for the user's role
+    //       -> do NOT log out; let the calling component handle the failed request.
+    if (response.status === 401) {
+      localStorage.removeItem(AUTH_TOKEN_KEY)
+      localStorage.removeItem(AUTH_USER_KEY)
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     }
     throw new Error(`HTTP error! status: ${response.status}`)
   }
@@ -48,15 +53,15 @@ export async function login(credentials: LoginCredentials): Promise<LoginRespons
   })
 
   if (response.data?.token) {
-    localStorage.setItem('scrumly:auth-token', response.data.token)
+    localStorage.setItem(AUTH_TOKEN_KEY, response.data.token)
   }
 
   return response
 }
 
 export function logout(): void {
-  localStorage.removeItem('scrumly:auth-token')
-  localStorage.removeItem('scrumly:auth-user')
+  localStorage.removeItem(AUTH_TOKEN_KEY)
+  localStorage.removeItem(AUTH_USER_KEY)
 }
 
 // ============================================

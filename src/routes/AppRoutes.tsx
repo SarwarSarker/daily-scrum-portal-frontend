@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { ProtectedRoute } from './ProtectedRoute'
+import { PublicRoute } from './PublicRoute'
 
 const LoginPage = lazy(() => import('@/pages/auth/Login').then((m) => ({ default: m.LoginPage })))
 const ForgotPasswordPage = lazy(() =>
@@ -36,9 +37,11 @@ const NotFoundPage = lazy(() =>
 export function AppRoutes() {
   return (
     <Routes>
-      <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route element={<PublicRoute />}>
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        </Route>
       </Route>
 
       <Route element={<ProtectedRoute />}>

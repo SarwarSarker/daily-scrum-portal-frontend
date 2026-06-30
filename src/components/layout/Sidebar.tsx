@@ -102,7 +102,7 @@ export function Sidebar({ variant = 'desktop', onNavigate }: SidebarProps) {
           <div className="p-3">
             <div className="rounded-lg border border-dashed border-sidebar-border p-3 text-xs text-muted-foreground">
               <p className="font-medium text-sidebar-foreground">Need help?</p>
-              <p>Check the docs or contact support.</p>
+              <p>Contact support.</p>
             </div>
           </div>
         </>

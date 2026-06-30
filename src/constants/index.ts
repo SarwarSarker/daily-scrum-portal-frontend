@@ -2,6 +2,10 @@ export const APP_NAME = 'Scrumly'
 export const APP_TAGLINE = 'Daily Scrum Dashboard'
 export const APP_VERSION = '1.0.0'
 
+// LocalStorage keys
+export const AUTH_TOKEN_KEY = 'scrumly:auth-token'
+export const AUTH_USER_KEY = 'scrumly:auth-user'
+
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL + "/api/"
 export const API_BASE_URL = BASE_URL
 

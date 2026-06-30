@@ -1,264 +1,217 @@
-import { useState } from "react"
-import { Link } from "react-router-dom"
-import { toast } from "sonner"
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import {
+  ArrowUpRight,
   ExternalLink,
   MoreHorizontal,
   Pencil,
   Trash2,
   Users,
-} from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { ConfirmDialog } from "@/components/common/ConfirmDialog"
-import { Button } from "@/components/ui/button"
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { cn, getInitials } from "@/lib/utils"
-import type { Project } from "@/types"
-
-// ============================================================================
-// TYPES
-// ============================================================================
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn, getInitials } from "@/lib/utils";
+import type { Project } from "@/types";
 
 interface ProjectCardProps {
-  /** Project to display */
-  project: Project
-  /** Callback when edit is triggered */
-  onEdit?: (project: Project) => void
-  /** Callback when remove is triggered */
-  onRemove?: (project: Project) => void
+  project: Project;
+  onEdit?: (project: Project) => void;
+  onRemove?: (project: Project) => void;
 }
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
-/**
- * Status color mapping for project badges
- */
 const STATUS_COLORS: Record<string, string> = {
-  planning: '#3B82F6',           // Blue
-  in_progress: '#10B981',        // Green
-  continue_development: '#8B5CF6', // Purple
-  on_hold: '#F59E0B',            // Amber
-  completed: '#059669',          // Emerald
-  cancelled: '#6B7280',           // Gray
-}
+  planning: "#3B82F6",
+  in_progress: "#10B981",
+  continue_development: "#8B5CF6",
+  on_hold: "#F59E0B",
+  completed: "#059669",
+  cancelled: "#6B7280",
+};
 
-/**
- * Default status color if no match found
- */
-const DEFAULT_STATUS_COLOR = '#10B981'
+const DEFAULT_STATUS_COLOR = "#10B981";
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
+const CATEGORY_META: Record<string, { label: string; color: string }> = {
+  tech: { label: "Technology", color: "#60A5FA" },
+  marketing: { label: "Marketing", color: "#EC4899" },
+  business: { label: "Business", color: "#F59E0B" },
+};
 
-/**
- * Get color for project status badge
- */
-function getStatusColor(status: string): string {
-  return STATUS_COLORS[status] || DEFAULT_STATUS_COLOR
-}
-
-/**
- * Format status text for display
- */
+/** Format a status enum value into readable text */
 function formatStatusText(status: string): string {
-  return status.replace(/_/g, ' ')
+  return status.replace(/_/g, " ");
 }
 
-/**
- * Get project card styling classes
- */
-function getProjectCardClasses(): string {
-  return cn(
-    "group relative overflow-hidden transition-all duration-300",
-    "hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10",
-    "bg-white",
-    "border border-gray-100 hover:border-blue-300"
-  )
+/** Truncate text to a maximum number of words, appending an ellipsis when cut */
+function truncateWords(text: string, maxWords: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ") + "…";
 }
 
-/**
- * Get status badge styling
- */
-function getStatusBadgeStyle(statusColor: string): React.CSSProperties {
-  return {
-    borderColor: statusColor,
-    color: statusColor,
+function getPillMeta(project: Project): { label: string; color: string } {
+  if (project.category && CATEGORY_META[project.category]) {
+    return CATEGORY_META[project.category];
   }
-}
-
-/**
- * Get avatar fallback styling
- */
-function getAvatarFallbackStyle(statusColor: string): React.CSSProperties {
   return {
-    backgroundColor: statusColor,
-  }
+    label: formatStatusText(project.status),
+    color: STATUS_COLORS[project.status] || DEFAULT_STATUS_COLOR,
+  };
 }
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
 
 export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
-  // ============================================================================
-  // STATE
-  // ============================================================================
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  console.log("🚀 ~ ProjectCard ~ project:", project);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const pill = getPillMeta(project);
+  const teamName = project.team?.name || `Team ${project.teamId}`;
 
-  // ============================================================================
-  // COMPUTED VALUES
-  // ============================================================================
-  const statusColor = getStatusColor(project.status)
-  const formattedStatus = formatStatusText(project.status)
-  const cardClasses = getProjectCardClasses()
-  const badgeStyle = getStatusBadgeStyle(statusColor)
-  const avatarFallbackStyle = getAvatarFallbackStyle(statusColor)
-
-  // ============================================================================
-  // EVENT HANDLERS
-  // ============================================================================
   const handleEditClick = () => {
-    onEdit?.(project)
-  }
+    onEdit?.(project);
+  };
 
   const handleRemoveClick = () => {
-    setIsConfirmDialogOpen(true)
-  }
+    setIsConfirmDialogOpen(true);
+  };
 
   const handleConfirmRemove = () => {
     if (onRemove) {
-      onRemove(project)
+      onRemove(project);
     } else {
-      toast.success(`Project "${project.name}" removed`)
+      toast.success(`Project "${project.name}" removed`);
     }
-    setIsConfirmDialogOpen(false)
-  }
+    setIsConfirmDialogOpen(false);
+  };
 
   const handleDialogClose = () => {
-    setIsConfirmDialogOpen(false)
-  }
+    setIsConfirmDialogOpen(false);
+  };
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
   return (
-    <Card className={cardClasses}>
-      <div className="relative p-5 space-y-4">
-        {/* Header Section */}
-        <div className="space-y-2">
-          {/* Title and Actions */}
-          <div className="flex items-start justify-between gap-4">
-            {/* Project Title */}
-            <Link
-              to={`/projects/${project.id}`}
-              className="flex-1 group/link"
-            >
-              <h3 className="line-clamp-2 text-lg font-bold text-black leading-snug">
-                {project.name}
-              </h3>
-            </Link>
-
-            {/* Action Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 transition-all duration-200 hover:scale-105 hover:bg-gray-100 rounded-full"
-                  aria-label="Project actions"
-                >
-                  <MoreHorizontal className="size-4 text-gray-600" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 border border-gray-200 bg-white shadow-lg">
-                <DropdownMenuItem
-                  onClick={handleEditClick}
-                  className="gap-2 hover:bg-blue-50"
-                >
-                  <Pencil className="size-4 text-blue-600" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="gap-2 hover:bg-blue-50">
-                  <Link to={`/projects/${project.id}`}>
-                    <ExternalLink className="size-4 text-blue-600" /> Open details
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleRemoveClick}
-                  className="text-red-600 focus:text-red-600 gap-2 hover:bg-red-50"
-                >
-                  <Trash2 className="size-4" /> Remove
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Status Badge */}
-          <div
-            className="px-2 pt-1 pb-0.5 rounded-full border bg-transparent text-[10px] font-bold uppercase w-fit"
-            style={badgeStyle}
+    <Card
+      className={cn(
+        "group relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all duration-300",
+        "hover:-translate-y-1 hover:shadow-lg",
+      )}
+    >
+      <div className="relative space-y-3 p-6">
+        {/* Header: category pill + actions */}
+        <div className="flex items-start justify-between gap-3">
+          <span
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider"
+            style={{ backgroundColor: `${pill.color}1a`, color: pill.color }}
           >
-            {formattedStatus}
-          </div>
+            <span
+              className="size-1.5 rounded-full"
+              style={{ backgroundColor: pill.color }}
+            />
+            {pill.label}
+          </span>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 rounded-full text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-accent hover:text-foreground"
+                aria-label="Project actions"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleEditClick} className="gap-2">
+                <Pencil className="size-4" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="gap-2">
+                <Link to={`/projects/${project.id}`}>
+                  <ExternalLink className="size-4" /> Open details
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleRemoveClick}
+                className="gap-2 text-red-500 focus:text-red-500"
+              >
+                <Trash2 className="size-4" /> Remove
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Description */}
-        {project.description && (
-          <p className="text-sm text-gray-600 leading-relaxed">
-            {project.description}
-          </p>
-        )}
+        <div className="mb-6">
+          {/* Title */}
+          <Link to={`/projects/${project.id}`} className="block">
+            <h3 className="truncate text-lg font-semibold tracking-tight">
+              {project.name}
+            </h3>
+          </Link>
 
-        {/* Footer Section */}
-        <div className="space-y-3 pt-2">
-          {/* Project Owner */}
-          {project.owner && (
-            <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-              <Avatar className="size-6 ring-2 ring-white">
-                {project.owner.avatar ? (
-                  <AvatarImage
-                    src={project.owner.avatar}
-                    alt={project.owner.name}
-                  />
-                ) : (
-                  <AvatarFallback
-                    className="text-white text-[10px] font-semibold"
-                    style={avatarFallbackStyle}
-                  >
-                    {getInitials(project.owner.name)}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-medium">
-                  Project Lead
-                </span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {project.owner.name}
-                </span>
-              </div>
-            </div>
+          {/* Description */}
+          {project.description && (
+            <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+              {truncateWords(project.description, 150)}
+            </p>
           )}
+        </div>
 
-          {/* Team Information */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-gray-600">
-              <Users className="size-4" />
-              <span className="text-sm">
-                {project.team?.name || `Team ${project.teamId}`}
+        {/* Project Lead */}
+        {project.owner && (
+          <div className="flex items-center gap-3">
+            <Avatar className="size-8 ring-2 ring-border">
+              <AvatarImage
+                src={
+                  project.owner.avatar ||
+                  `https://i.pravatar.cc/150?u=${project.owner.id}`
+                }
+                alt={project.owner.name}
+              />
+              <AvatarFallback className="bg-indigo-500 text-sm font-semibold text-white">
+                {getInitials(project.owner.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="truncate text-sm font-medium">
+                {project.owner.name}
+              </span>
+              <span className="truncate text-xs text-muted-foreground">
+                Project Lead
               </span>
             </div>
           </div>
+        )}
+
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t border-border pt-4">
+          {/* Team */}
+          <div className="flex items-center gap-3">
+            <span className="grid size-6 place-items-center rounded-full bg-indigo-500">
+              <Users className="size-3 text-white" />
+            </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-base font-bold text-foreground">
+                {teamName}
+              </span>
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Team
+              </span>
+            </div>
+          </div>
+
+          <Link
+            to={`/projects/${project.id}`}
+            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            View <ArrowUpRight className="size-4" />
+          </Link>
         </div>
       </div>
 
@@ -273,5 +226,5 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
         onConfirm={handleConfirmRemove}
       />
     </Card>
-  )
+  );
 }
