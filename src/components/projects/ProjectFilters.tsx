@@ -9,10 +9,6 @@ import {
 } from '@/components/ui/select'
 import type { Project } from '@/types'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 export type Category = Project['category'] | 'all'
 export type Status = Project['status'] | 'all'
 export type Priority = Project['priority'] | 'all'
@@ -30,10 +26,6 @@ interface ProjectFiltersProps {
   /** Callback when filters change */
   onChange: (values: ProjectFiltersValue) => void
 }
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
 
 /**
  * Available category filter options
@@ -79,10 +71,6 @@ const SELECT_TRIGGER_WIDTH = 'w-full sm:w-36'
  */
 const SEARCH_PLACEHOLDER = 'Search projects...'
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
 /**
  * Update a single filter value while preserving other filters
  */
@@ -97,14 +85,7 @@ function updateFilter<K extends keyof ProjectFiltersValue>(
   }
 }
 
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
 export function ProjectFilters({ value, onChange }: ProjectFiltersProps) {
-  // ============================================================================
-  // EVENT HANDLERS
-  // ============================================================================
   const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const updatedFilters = updateFilter(value, 'query', event.target.value)
     onChange(updatedFilters)
@@ -125,9 +106,6 @@ export function ProjectFilters({ value, onChange }: ProjectFiltersProps) {
     onChange(updatedFilters)
   }
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
       {/* Search Input */}

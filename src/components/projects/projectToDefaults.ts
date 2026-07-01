@@ -5,7 +5,7 @@ export function projectToDefaults(p: Project): Partial<ProjectFormValues> {
   return {
     name: p.name,
     description: p.description,
-    owner: p.owner?.name || '', // Use owner name instead of ID
+    owner: p.owner?.id ? String(p.owner.id) : '',
     teamId: p.teamId,
     status:
       p.status === 'cancelled' || p.status === 'completed'

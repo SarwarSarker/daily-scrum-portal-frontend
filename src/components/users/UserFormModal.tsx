@@ -1,10 +1,8 @@
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -13,37 +11,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { mockTeams } from '@/mock/teams'
+import { Field } from './Field'
+import { FormSelectField } from './FormSelectField'
+import {
+  roleOptions,
+  statusOptions,
+  userFormSchema,
+  type UserFormValues,
+} from './userFormSchema'
 
-const roleOptions = [
-  { value: 'admin',     label: 'Admin'     },
-  { value: 'manager',   label: 'Manager'   },
-  { value: 'team_lead', label: 'Team Lead' },
-  { value: 'member',    label: 'Member'    },
-] as const
-
-const statusOptions = [
-  { value: 'active',   label: 'Active'   },
-  { value: 'inactive', label: 'Inactive' },
-] as const
-
-const schema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Enter a valid email'),
-  role: z.enum(['admin', 'manager', 'team_lead', 'member']),
-  designation: z.string().min(2, 'Designation is required'),
-  teamId: z.string().min(1, 'Pick a team'),
-  status: z.enum(['active', 'inactive']),
-})
-
-export type UserFormValues = z.infer<typeof schema>
+export type { UserFormValues } from './userFormSchema'
 
 interface UserFormModalProps {
   open: boolean
@@ -53,7 +31,7 @@ interface UserFormModalProps {
 
 export function UserFormModal({ open, onOpenChange, defaultValues }: UserFormModalProps) {
   const form = useForm<UserFormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: '',
       email: '',
@@ -99,54 +77,19 @@ export function UserFormModal({ open, onOpenChange, defaultValues }: UserFormMod
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Field label="Role">
-              <Controller
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {roleOptions.map((r) => (
-                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+              <FormSelectField control={form.control} name="role" options={roleOptions} />
             </Field>
 
             <Field label="Team" error={form.formState.errors.teamId?.message}>
-              <Controller
+              <FormSelectField
                 control={form.control}
                 name="teamId"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {mockTeams.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                options={mockTeams.map((team) => ({ value: team.id, label: team.name }))}
               />
             </Field>
 
             <Field label="Status">
-              <Controller
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+              <FormSelectField control={form.control} name="status" options={statusOptions} />
             </Field>
           </div>
 
@@ -161,23 +104,5 @@ export function UserFormModal({ open, onOpenChange, defaultValues }: UserFormMod
         </form>
       </DialogContent>
     </Dialog>
-  )
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-xs font-semibold uppercase tracking-wider text-primary">{label}</Label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
   )
 }

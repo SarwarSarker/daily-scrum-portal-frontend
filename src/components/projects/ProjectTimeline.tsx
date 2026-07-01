@@ -8,10 +8,6 @@ import { getInitials, cn } from '@/lib/utils'
 import { useUsers } from '@/utils/apiHelper'
 import type { UserData } from '@/types/api'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 interface ScrumReport {
   id: string
   projectId: string
@@ -29,24 +25,12 @@ interface ProjectTimelineProps {
   projectId: string
 }
 
-// ============================================================================
-// MOCK DATA (TODO: Replace with real API calls)
-// ============================================================================
-
-/**
- * TODO: Replace with real API call when scrum reports endpoint is available
- * This is temporary mock data for demonstration purposes
- */
 function getMockScrumReports(projectId: string): ScrumReport[] {
   // TODO: Use projectId to fetch real scrum reports from API
   // For now, return empty array - scrum reports feature coming later
   console.log('Fetching scrum reports for project:', projectId)
   return []
 }
-
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
 
 /**
  * Find user by ID from users array
@@ -72,10 +56,6 @@ function formatMovementText(movement: number): string {
   return `${sign}${movement}% this week`
 }
 
-// ============================================================================
-// SUBCOMPONENTS
-// ============================================================================
-
 /**
  * Single timeline item component
  */
@@ -94,7 +74,7 @@ function TimelineItem({
       {/* Timeline dot */}
       <span
         aria-hidden
-        className="absolute -left-[1.4rem] top-2 size-3 rounded-full border-2 border-background bg-primary"
+        className="absolute left-[-1.4rem] top-2 size-3 rounded-full border-2 border-background bg-primary"
       />
 
       {/* Timeline Card */}
@@ -166,22 +146,12 @@ function TimelineItem({
   )
 }
 
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
 export function ProjectTimeline({ projectId }: ProjectTimelineProps) {
-  // ============================================================================
-  // DATA FETCHING
-  // ============================================================================
   const { data: users = [] } = useUsers()
 
   // TODO: Replace with real API call when scrum reports endpoint is available
   const reports = getMockScrumReports(projectId)
 
-  // ============================================================================
-  // EARLY RETURN
-  // ============================================================================
   if (reports.length === 0) {
     return (
       <EmptyState
@@ -191,9 +161,6 @@ export function ProjectTimeline({ projectId }: ProjectTimelineProps) {
     )
   }
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
   return (
     <ol className="relative space-y-4 pl-6">
       {/* Timeline Line */}
