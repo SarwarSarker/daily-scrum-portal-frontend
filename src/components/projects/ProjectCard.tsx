@@ -18,7 +18,6 @@ export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
   const pill = getPillMeta(project)
   const teamName = project.team?.name || `Team ${project.teamId}`
   const members = project.members ?? []
-  const owner = project.owner ? [project.owner] : []
 
   return (
     <Card
