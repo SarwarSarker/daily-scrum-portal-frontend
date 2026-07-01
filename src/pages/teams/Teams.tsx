@@ -42,7 +42,7 @@ export function TeamsPage() {
         <StatCard label="Departments" value={`${mockDepartments.length}`} icon={Building2} variant="primary" />
         <StatCard label="Teams" value={`${mockTeams.length}`} icon={Users} variant="info" />
         <StatCard label="People" value={`${mockUsers.length}`} icon={UsersRound} variant="success" />
-        <StatCard label="Active projects" value={`${mockProjects.filter((p) => p.status !== 'completed' && p.status !== 'cancelled').length}`} icon={Briefcase} variant="warning" />
+        <StatCard label="Active projects" value={`${mockProjects.filter((p) => p.status !== 'completed').length}`} icon={Briefcase} variant="warning" />
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

@@ -7,15 +7,6 @@ export function projectToDefaults(p: Project): Partial<ProjectFormValues> {
     description: p.description,
     owner: p.owner?.id ? String(p.owner.id) : '',
     teamId: p.teamId,
-    status:
-      p.status === 'cancelled' || p.status === 'completed'
-        ? 'completed'
-        : p.status === 'on_hold'
-          ? 'on_hold'
-          : p.status === 'continue_development'
-            ? 'continue_development'
-            : p.status === 'planning'
-              ? 'planning'
-              : 'in_progress',
+    status: p.status,
   }
 }

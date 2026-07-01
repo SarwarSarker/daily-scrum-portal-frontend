@@ -10,9 +10,7 @@ import { mockProjects } from '@/mock/projects'
 import { mockTasks } from '@/mock/tasks'
 
 export function DashboardStats() {
-  const active = mockProjects.filter(
-    (p) => p.status !== 'completed' && p.status !== 'cancelled',
-  )
+  const active = mockProjects.filter((p) => p.status !== 'completed')
   const completed = mockProjects.filter((p) => p.status === 'completed')
 
   const avgProgress =
@@ -21,10 +19,7 @@ export function DashboardStats() {
       : Math.round(active.reduce((s, p) => s + p.currentProgress, 0) / active.length)
 
   const highPriority = mockProjects.filter(
-    (p) =>
-      (p.priority === 'high' || p.priority === 'urgent') &&
-      p.status !== 'completed' &&
-      p.status !== 'cancelled',
+    (p) => p.priority === 'high' && p.status !== 'completed',
   ).length
 
   const taskCompletion =

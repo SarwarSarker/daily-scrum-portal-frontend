@@ -5,7 +5,6 @@ const priorityMap: Record<Priority, { label: string; variant: Parameters<typeof 
   low: { label: 'Low', variant: 'secondary' },
   medium: { label: 'Medium', variant: 'info' },
   high: { label: 'High', variant: 'warning' },
-  urgent: { label: 'Urgent', variant: 'destructive' },
 }
 
 export function PriorityBadge({ priority }: { priority?: Priority | string | null }) {

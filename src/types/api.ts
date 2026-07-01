@@ -36,8 +36,8 @@ export interface ProjectData {
   ownerId: string
   teamId: string
   category?: 'tech' | 'marketing' | 'business'
-  status: 'planning' | 'in_progress' | 'continue_development' | 'on_hold' | 'completed' | 'cancelled'
-  priority?: 'low' | 'medium' | 'high' | 'urgent'
+  status: 'planning' | 'in_progress' | 'continue_development' | 'on_hold' | 'completed'
+  priority?: 'low' | 'medium' | 'high'
   currentProgress?: number
   targetProgress?: number
   riskLevel?: 'low' | 'medium' | 'high' | 'critical'
@@ -62,6 +62,22 @@ export interface ProjectData {
     name: string
     avatar: string | null
   }
+  members?: Array<{
+    id: string
+    name: string
+    avatar: string | null
+  }>
+  memberCount?: number
+  progress?: number
+  taskStats?: {
+    total: number
+    completed: number
+    remaining: number
+  }
+  start_date?: string
+  end_date?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export type ProjectsResponse = ApiResponse<ProjectData[]>
@@ -71,7 +87,7 @@ export interface CreateProjectData {
   owner_id: number
   team_id: number
   created_by: number
-  status: 'planning' | 'in_progress' | 'continue_development' | 'on_hold' | 'completed' | 'cancelled'
+  status: 'planning' | 'in_progress' | 'continue_development' | 'on_hold' | 'completed'
   description: string
   blocker?: string
 }
@@ -121,8 +137,8 @@ export interface TaskData {
   title: string
   description: string
   taskType: 'feature' | 'bug' | 'chore' | 'research' | 'meeting'
-  status: 'todo' | 'in_progress' | 'review' | 'completed'
-  priority: 'low' | 'medium' | 'high' | 'urgent'
+  status: 'pending' | 'on_hold' | 'in_progress' | 'in_review' | 'completed'
+  priority: 'low' | 'medium' | 'high'
   progress: number
   dependencyTaskId?: string
   blocker?: string
@@ -141,8 +157,8 @@ export interface CreateTaskData {
   title: string
   description: string
   taskType: 'feature' | 'bug' | 'chore' | 'research' | 'meeting'
-  status: 'todo' | 'in_progress' | 'review' | 'completed'
-  priority: 'low' | 'medium' | 'high' | 'urgent'
+  status: 'pending' | 'on_hold' | 'in_progress' | 'in_review' | 'completed'
+  priority: 'low' | 'medium' | 'high'
   progress: number
   dependencyTaskId?: string
   blocker?: string

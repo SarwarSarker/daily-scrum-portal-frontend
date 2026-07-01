@@ -4,9 +4,7 @@ import { mockProjects } from '@/mock/projects'
 
 export function FocusListCard() {
   // Pick the lowest-progress active project for the headline focus
-  const active = mockProjects.filter(
-    (p) => p.status !== 'completed' && p.status !== 'cancelled',
-  )
+  const active = mockProjects.filter((p) => p.status !== 'completed')
   const laggard = [...active].sort((a, b) => a.currentProgress - b.currentProgress)[0]
 
   const items = [

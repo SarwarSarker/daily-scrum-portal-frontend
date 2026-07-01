@@ -32,8 +32,7 @@ export type ProjectStatus =
   | 'continue_development'
   | 'on_hold'
   | 'completed'
-  | 'cancelled'
-export type Priority = 'low' | 'medium' | 'high' | 'urgent'
+export type Priority = 'low' | 'medium' | 'high'
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
 
 export interface ProjectOwner {
@@ -71,7 +70,7 @@ export interface Project {
   memberCount?: number
 }
 
-export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'completed'
+export type TaskStatus = 'pending' | 'on_hold' | 'in_progress' | 'in_review' | 'completed'
 export type TaskType = 'feature' | 'bug' | 'chore' | 'research' | 'meeting'
 
 export interface Task {

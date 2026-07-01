@@ -15,10 +15,10 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, onEdit, onRemove }: ProjectCardProps) {
-  console.log("🚀 ~ ProjectCard ~ project:", project)
   const pill = getPillMeta(project)
   const teamName = project.team?.name || `Team ${project.teamId}`
   const members = project.members ?? []
+  const owner = project.owner ? [project.owner] : []
 
   return (
     <Card

@@ -4,9 +4,7 @@ import { mockProjects } from '@/mock/projects'
 import { mockTasks } from '@/mock/tasks'
 
 export function CompletionTrendCard() {
-  const active = mockProjects.filter(
-    (p) => p.status !== 'completed' && p.status !== 'cancelled',
-  )
+  const active = mockProjects.filter((p) => p.status !== 'completed')
 
   const avgProgress =
     active.length === 0
@@ -21,18 +19,12 @@ export function CompletionTrendCard() {
         )
 
   const highPriority = mockProjects.filter(
-    (p) =>
-      (p.priority === 'high' || p.priority === 'urgent') &&
-      p.status !== 'completed' &&
-      p.status !== 'cancelled',
+    (p) => p.priority === 'high' && p.status !== 'completed',
   ).length
 
   const today = new Date()
   const delayed = mockProjects.filter(
-    (p) =>
-      p.status !== 'completed' &&
-      p.status !== 'cancelled' &&
-      new Date(p.dueDate) < today,
+    (p) => p.status !== 'completed' && new Date(p.dueDate) < today,
   ).length
 
   const rows = [

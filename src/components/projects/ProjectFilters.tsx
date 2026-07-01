@@ -47,7 +47,6 @@ const STATUS_OPTIONS = [
   { value: 'continue_development', label: 'Continue Development' },
   { value: 'on_hold', label: 'On Hold' },
   { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
 ] as const
 
 /**
@@ -55,7 +54,6 @@ const STATUS_OPTIONS = [
  */
 const PRIORITY_OPTIONS = [
   { value: 'all', label: 'All priorities' },
-  { value: 'urgent', label: 'Urgent' },
   { value: 'high', label: 'High' },
   { value: 'medium', label: 'Medium' },
   { value: 'low', label: 'Low' },

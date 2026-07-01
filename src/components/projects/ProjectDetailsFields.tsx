@@ -2,17 +2,18 @@ import type { UseFormReturn } from 'react-hook-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { useUsers } from '@/utils/apiHelper'
 import { FormField, FormSelectField } from './FormField'
 import { STATUS_OPTIONS, type ProjectFormValues } from './projectFormSchema'
 
 interface ProjectDetailsFieldsProps {
   form: UseFormReturn<ProjectFormValues>
-  users: Array<{ id: string; name: string }>
   teams: Array<{ id: string; name: string }>
 }
 
-export function ProjectDetailsFields({ form, users, teams }: ProjectDetailsFieldsProps) {
+export function ProjectDetailsFields({ form, teams }: ProjectDetailsFieldsProps) {
   const { register, control, formState } = form
+  const { data: users = [] } = useUsers()
 
   return (
     <Card className="lg:col-span-2">

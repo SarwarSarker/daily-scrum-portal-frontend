@@ -119,7 +119,7 @@ export function ProjectFormModal({
 
         <form className="space-y-5" onSubmit={form.handleSubmit(handleSubmit)}>
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-            <ProjectDetailsFields form={form} users={users} teams={teams} />
+            <ProjectDetailsFields form={form} teams={teams} />
             <ProjectLivePreview control={form.control} teams={teams} users={users} />
           </div>
 

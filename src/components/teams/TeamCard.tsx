@@ -23,9 +23,7 @@ export function TeamCard({ team, onClick, onEdit, onRemove }: TeamCardProps) {
   const lead = team.leadId ? userById(team.leadId) : undefined
   const members = mockUsers.filter((u) => u.teamId === team.id)
   const projects = mockProjects.filter((p) => p.teamId === team.id)
-  const activeProjects = projects.filter(
-    (p) => p.status !== "completed" && p.status !== "cancelled",
-  )
+  const activeProjects = projects.filter((p) => p.status !== "completed")
   const department = departmentById(team.departmentId)
   const theme = getDeptTheme(team.departmentId)
 
