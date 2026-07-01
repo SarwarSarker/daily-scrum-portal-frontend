@@ -67,6 +67,8 @@ export interface Project {
   owner?: ProjectOwner
   team?: ProjectTeam
   createdBy?: ProjectOwner
+  members?: ProjectOwner[]
+  memberCount?: number
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'completed'

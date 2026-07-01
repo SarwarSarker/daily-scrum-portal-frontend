@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ExternalLink, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import {
@@ -47,11 +46,6 @@ export function ProjectCardActions({ project, onEdit, onRemove }: ProjectCardAct
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuItem onClick={() => onEdit?.(project)} className="gap-2">
             <Pencil className="size-4" /> Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className="gap-2">
-            <Link to={`/projects/${project.id}`}>
-              <ExternalLink className="size-4" /> Open details
-            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
