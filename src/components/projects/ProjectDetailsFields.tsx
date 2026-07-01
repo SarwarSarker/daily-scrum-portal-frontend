@@ -2,8 +2,7 @@ import type { UseFormReturn } from 'react-hook-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { FormField } from './FormField'
-import { FormSelectField } from './FormSelectField'
+import { FormField, FormSelectField } from './FormField'
 import { STATUS_OPTIONS, type ProjectFormValues } from './projectFormSchema'
 
 interface ProjectDetailsFieldsProps {
